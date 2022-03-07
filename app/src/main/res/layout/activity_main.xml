@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:tabIndicatorFullWidth="true"
-        app:tabIndicatorGravity="center"
-        app:tabIndicatorHeight="40dp"
+        app:tabIndicatorGravity="bottom"
+        app:tabIndicatorHeight="1dp"
         tools:layout_editor_absoluteX="44dp"
         tools:layout_editor_absoluteY="7dp">
     </com.google.android.material.tabs.TabLayout>

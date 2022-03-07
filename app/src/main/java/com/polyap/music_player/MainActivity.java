@@ -15,6 +15,7 @@ import android.content.ContentProvider;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -34,8 +35,10 @@ public class MainActivity extends AppCompatActivity {
     public final static int MIN_MUSIC_DURATION = 30;
     public final static int REQUEST_CODE = 1;
     public static boolean ALL_PERMISSIONS_GRANTED = false;
+    public static boolean isShuffle = false, isRepeat = false, isVisualize = true;
     String[] PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.RECORD_AUDIO
     };
 
@@ -58,6 +61,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onConfigureTab(TabLayout.Tab tab, int position) {
                 tab.setText(viewPager2Adapter.getPageTitle(position));
+            }
+        });
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
             }
         });
         tabLayoutMediator.attach();
@@ -118,7 +136,8 @@ public class MainActivity extends AppCompatActivity {
                 MediaStore.Audio.Media.DURATION,
                 MediaStore.Audio.Media.DATA,
                 MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ALBUM_ID
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media._ID
         };
 
         Cursor cursor = getApplicationContext().getContentResolver().query(uri, projection,null,null,null);
@@ -130,7 +149,8 @@ public class MainActivity extends AppCompatActivity {
                 String path = cursor.getString(3);
                 String artist = cursor.getString(4);
                 String albumId = cursor.getString(5);
-                MusicFiles musicFiles = new MusicFiles(title,album,artist,duration, path, albumId);
+                String id = cursor.getString(6);
+                MusicFiles musicFiles = new MusicFiles(title,album,artist,duration, path, albumId, id);
                 if(duration != null && Integer.parseInt(duration)/ 1000 > MIN_MUSIC_DURATION)
                     tmpAudioList.add(musicFiles);
             }
