@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_visualizer"
+        android:title="Visualizer">
+        <menu>
+            <item android:id="@+id/enable_visualizer"
+                android:title="Enable" />
+            <item android:id="@+id/disable_visualizer"
+                android:title="Disable" />
+        </menu>
+
+    </item>
+</menu>
