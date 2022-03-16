@@ -4,16 +4,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/player_activity"
-    android:background="@drawable/main_bg"
+
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PlayerActivity">
+    <ImageView
+        android:layout_width="match_parent"
+        android:src="@drawable/main_bg"
+        android:layout_height="match_parent">
+
+    </ImageView>
     <RelativeLayout
         android:layout_width="match_parent"
         android:id="@+id/layout_top_btn"
-        android:layout_height="50dp"
-        android:background="@drawable/gradient_bg">
+        android:layout_height="50dp">
+        <!--android:background="@drawable/gradient_bg">-->
 
         <ImageView
             android:id="@+id/back_btn"
@@ -43,68 +49,80 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_menu"></ImageView>
     </RelativeLayout>
+
     <RelativeLayout
+        android:id="@+id/card"
         android:layout_width="match_parent"
         android:layout_height="400dp"
-        android:id="@+id/card"
         android:layout_below="@+id/layout_top_btn">
 
-        <ImageView
-            android:layout_margin="30dp"
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/album_art"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"></ImageView>
+            android:layout_marginStart="33dp"
+            android:layout_marginTop="33dp"
+            android:layout_marginEnd="33dp"
+            android:layout_marginBottom="33dp"
+            app:shapeAppearanceOverlay="@style/roundedAlbum"
+            android:scaleType="centerCrop"></com.google.android.material.imageview.ShapeableImageView>
 
-        <ImageView
+        <!--<ImageView
             android:id="@+id/imageViewGradient"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:layout_alignParentBottom="true"
-            android:src="@drawable/gradient_bg">
-        </ImageView>
+            android:src="@drawable/gradient_bg"></ImageView>
+            -->
     </RelativeLayout>
 
-    <TextView
-        android:id="@+id/song_name"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/card"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:ellipsize="end"
-        android:gravity="center_horizontal"
-        android:singleLine="true"
-        android:text="This is song name"
-        android:textColor="@color/white"
-        android:textSize="22sp"
-        android:textStyle="bold"></TextView>
+        android:layout_above="@id/seek_bar_layout"
+        android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="This is song artist"
-        android:id="@+id/song_artist"
-        android:layout_below="@id/song_name"
-        android:textColor="@color/white"
-        android:gravity="center_horizontal"
-        android:textSize="18sp"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:layout_marginStart="40dp"
-        android:layout_marginEnd="40dp">
-    </TextView>
+        <TextView
+            android:id="@+id/song_name"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="32dp"
+            android:ellipsize="marquee"
+            android:focusable="false"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:textStyle="bold"></TextView>
+
+        <TextView
+            android:id="@+id/song_artist"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginEnd="40dp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="17sp"></TextView>
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/relative_layout_for_bottom"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="70dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="60dp"
-        android:background="@drawable/gradient_bg">
+        android:layout_marginBottom="60dp">
+        <!--android:background="@drawable/gradient_bg">-->
 
         <ImageView
             android:id="@+id/shuffle"
@@ -117,8 +135,8 @@
 
         <ImageView
             android:id="@+id/skip_prev"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:layout_marginEnd="16dp"
             android:layout_toStartOf="@+id/play_pause"
@@ -138,8 +156,8 @@
 
         <ImageView
             android:id="@+id/skip_next"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@+id/play_pause"
@@ -163,6 +181,7 @@
         android:layout_height="60dp"
         android:layout_above="@id/relative_layout_for_bottom"
         android:layout_marginBottom="10dp">
+
 
         <TextView
             android:id="@+id/duration_played"
@@ -205,14 +224,13 @@
 
     </RelativeLayout>
 
-    <com.gauravk.audiovisualizer.visualizer.WaveVisualizer
-        xmlns:custom="http://schemas.android.com/apk/res-auto"
+    <com.gauravk.audiovisualizer.visualizer.WaveVisualizer xmlns:custom="http://schemas.android.com/apk/res-auto"
         android:id="@+id/wave_visualizer"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_alignParentBottom="true"
-        custom:avDensity="1"
-        custom:avType="fill"
-        custom:avSpeed="fast"/>
+        custom:avDensity="0.5"
+        custom:avSpeed="fast"
+        custom:avType="fill" />
 
 </RelativeLayout>

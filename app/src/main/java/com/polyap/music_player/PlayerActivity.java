@@ -1,5 +1,6 @@
 package com.polyap.music_player;
 
+import static android.graphics.BlendMode.COLOR;
 import static com.polyap.music_player.MainActivity.isRepeat;
 import static com.polyap.music_player.MainActivity.isShuffle;
 import static com.polyap.music_player.MainActivity.isVisualize;
@@ -9,52 +10,87 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
+import androidx.fragment.app.Fragment;
 import androidx.palette.graphics.Palette;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 import com.gauravk.audiovisualizer.base.BaseVisualizer;
 import com.gauravk.audiovisualizer.visualizer.WaveVisualizer;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.masoudss.lib.SeekBarOnProgressChanged;
 import com.masoudss.lib.WaveformSeekBar;
+import com.polyap.po_equalizer.DialogEqualizerFragment;
 import com.skydoves.powermenu.MenuAnimation;
 import com.skydoves.powermenu.OnMenuItemClickListener;
 import com.skydoves.powermenu.PowerMenu;
 import com.skydoves.powermenu.PowerMenuItem;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import jp.wasabeef.glide.transformations.BlurTransformation;
+import jp.wasabeef.glide.transformations.gpu.BrightnessFilterTransformation;
 
 
 public class PlayerActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
     TextView songName, artistName, durationPlayed, durationTotal;
     ImageView albumArt, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, menuBtn;
+    RelativeLayout playerLayout;
     FloatingActionButton playpauseBtn;
     WaveVisualizer visualizer;
     ExecutorService service = Executors.newFixedThreadPool(1);
@@ -68,8 +104,11 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     private int oldAudioSessionId = -2;
     final static String FORWARD = "forward";
     final static String BACK = "back";
+    String direction = FORWARD;
     WaveformSeekBar waveformSeekBar;
-
+    ColorDrawable lastColor = new ColorDrawable(Color.BLACK);
+    boolean shouldClick = false;
+    DialogEqualizerFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,8 +131,17 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         getIntentMethod(position);
         init = true;
+
         mainListeners();
 
+
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        visualizer.release();
+        super.onBackPressed();
     }
 
     private String formattedTime(int currentPosition){
@@ -113,10 +161,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     protected void onDestroy() {
+        if (visualizer != null)
+            visualizer.setEnabled(false);
+            visualizer.release();
         super.onDestroy();
         service.shutdown();
-        if (visualizer != null)
-            visualizer.release();
+
     }
 
 
@@ -125,11 +175,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             return (position + 1) % listSongs.size();
         }
         else{
-            return (position - 1) < 0 ? (listSongs.size() - 1): position - 1;
+            return (position - 1) < 0 ? (listSongs.size()) - 1: position - 1;
         }
     }
 
     private void mainListeners(){
+
         waveformSeekBar.setOnProgressChanged(new SeekBarOnProgressChanged() {
             @Override
             public void onProgressChanged(@NonNull WaveformSeekBar waveformSeekBar, float v, boolean b) {
@@ -137,7 +188,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
 
-        PlayerActivity.this.runOnUiThread(new Runnable() {
+       PlayerActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if(mediaPlayer != null){
@@ -148,6 +199,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 handler.postDelayed(this, 1000);
             }
         });
+
 
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -165,10 +217,19 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
         if(listSongs != null){
             uri = Uri.parse(listSongs.get(position).getPath());
-            songName.setText(listSongs.get(position).getTitle());
-            artistName.setText(listSongs.get(position).getArtist());
-            durationTotal.setText(formattedTime(Integer.parseInt(listSongs.get(position).getDuration()) / 1000));
-            loadImages();
+            Animation animation = AnimationUtils.loadAnimation(this, R.anim.waveform_animation);
+            waveformSeekBar.startAnimation(animation);
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+
+                    waveformSeekBar.setSampleFrom(uri.toString());
+
+                }
+            };
+            service.execute(runnable);
+            loadImages(position);
+
         }
         if(mediaPlayer != null) {
             mediaPlayer.stop();
@@ -188,7 +249,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
         if(isPlaying || !init) {
             playpauseBtn.setImageResource(R.drawable.ic_pause);
-            albumArt.animate().scaleX(1.2f).scaleY(1.2f).setDuration(300);
+            albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
+
             mediaPlayer.start();
         }
         else{
@@ -197,31 +259,36 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
         waveformSeekBar.setProgress(0);
         waveformSeekBar.setMaxProgress(mediaPlayer.getDuration() / 1000);
+
         int audioSessionId = mediaPlayer.getAudioSessionId();
         if (audioSessionId != -1 && oldAudioSessionId != audioSessionId) {
             visualizer.setAudioSessionId(audioSessionId);
             oldAudioSessionId = audioSessionId;
+            fragment = DialogEqualizerFragment.newBuilder()
+                    .setAudioSessionId(audioSessionId)
+                    .themeColor(ContextCompat.getColor(this, R.color.black))
+                    .textColor(ContextCompat.getColor(this, R.color.white))
+                    .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
+                    .darkColor(ContextCompat.getColor(this, R.color.purple_200))
+                    .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
+                    .build();
+
         }
 
-        Animation animation = AnimationUtils.loadAnimation(this, R.anim.waveform_animation);
-        waveformSeekBar.startAnimation(animation);
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                waveformSeekBar.setSampleFrom(uri.toString());
-            }
-        };
-        service.execute(runnable);
+
+
     }
 
     private void InitViews() {
         songName = findViewById(R.id.song_name);
+        songName.setSelected(true);
         artistName = findViewById(R.id.song_artist);
+        artistName.setSelected(true);
+
         durationPlayed = findViewById(R.id.duration_played);
         durationTotal = findViewById(R.id.duration_total);
 
         albumArt = findViewById(R.id.album_art);
-
         prevBtn = findViewById(R.id.skip_prev);
         nextBtn = findViewById(R.id.skip_next);
         backBtn = findViewById(R.id.back_btn);
@@ -233,54 +300,78 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         visualizer = findViewById(R.id.wave_visualizer);
         waveformSeekBar = findViewById(R.id.waveformSeekBar);
         waveformSeekBar.setOnTouchListener(this);
-
+        playerLayout = findViewById(R.id.player_activity);
+        nextBtn.setOnTouchListener(this);
         nextBtn.setOnClickListener(this);
+
         playpauseBtn.setOnClickListener(this);
         prevBtn.setOnClickListener(this);
+        prevBtn.setOnTouchListener(this);
         backBtn.setOnClickListener(this);
         shuffleBtn.setOnClickListener(this);
         repeatBtn.setOnClickListener(this);
         menuBtn.setOnClickListener(this);
+
+        playpauseBtn.animate().scaleX(1.2f).scaleY(1.2f).setDuration(50);
+        nextBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
+        prevBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
+        shuffleBtn.animate().scaleX(0.8f).scaleY(0.8f).setDuration(50);
+        repeatBtn.animate().scaleX(0.8f).scaleY(0.8f).setDuration(50);
     }
     private void changeVisualizerColor(BaseVisualizer visualizer){
         Bitmap bitmap = ((BitmapDrawable)albumArt.getDrawable()).getBitmap();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] imageInByte = baos.toByteArray();
-        bitmap = BitmapFactory.decodeByteArray(imageInByte, 0, imageInByte.length);
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
             @Override
             public void onGenerated(@Nullable Palette palette) {
                 Palette.Swatch swatch = palette.getDominantSwatch();
                 if(swatch != null){
                     float[] hsl = swatch.getHsl();
-                    hsl[2] = hsl[2] < (float) 0.5? (float)0.5 : hsl[2];
-                    visualizer.setColor(ColorUtils.HSLToColor(hsl));
-                    waveformSeekBar.setWaveProgressColor(ColorUtils.HSLToColor(hsl));
+                    hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
+                    hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
+                    int color = ColorUtils.HSLToColor(hsl);
+                    visualizer.setColor(color);
+                    waveformSeekBar.setWaveProgressColor(color);
+                    ColorDrawable colorDrawable1 = new ColorDrawable(color);
+                    ColorDrawable[] cd = {lastColor, colorDrawable1};
+                    TransitionDrawable transitionDrawable = new TransitionDrawable(cd);
+                    playerLayout.setBackground(transitionDrawable);
+                    transitionDrawable.startTransition(400);
+                    lastColor = colorDrawable1;
                 }
             }
         });
     }
-    private void loadImages(){
+    private void loadImages(int position){
+
         final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
         Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(listSongs.get(position).getAlbumId()));
-        Animation animation = AnimationUtils.loadAnimation(this,
-                android.R.anim.fade_out);
-
-        animation.setAnimationListener(new Animation.AnimationListener() {
+        Animation animationFirst;
+        Animation animationSecond;
+        if(direction.equals(FORWARD)) {
+            animationFirst = AnimationUtils.loadAnimation(this, R.anim.slide_left);
+            animationSecond = AnimationUtils.loadAnimation(this, R.anim.slide_left_sec);
+        }
+        else{
+            animationFirst = AnimationUtils.loadAnimation(this, R.anim.slide_right);
+            animationSecond = AnimationUtils.loadAnimation(this, R.anim.slide_right_sec);
+        }
+        animationFirst.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-
             }
-
             @Override
             public void onAnimationEnd(Animation animation) {
+                albumArt.startAnimation(animationSecond);
                 if(imageUri != null){
                     albumArt.setImageURI(imageUri);
                 }
-                if(albumArt.getDrawable() == null)
+                if(albumArt.getDrawable() == null) {
                     albumArt.setImageResource(R.drawable.msc_back);
+                }
                 changeVisualizerColor(visualizer);
+                songName.setText(listSongs.get(position).getTitle());
+                artistName.setText(listSongs.get(position).getArtist());
+                durationTotal.setText(formattedTime(Integer.parseInt(listSongs.get(position).getDuration()) / 1000));
             }
 
             @Override
@@ -288,7 +379,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
             }
         });
-        albumArt.startAnimation(animation);
+        albumArt.startAnimation(animationFirst);
+
 
         if(isRepeat){
             repeatBtn.setImageResource(R.drawable.ic_repeat_on);
@@ -304,6 +396,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
         if(isVisualize){
             visualizer.show();
+
+
         }
         else{
             visualizer.hide();
@@ -313,9 +407,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onClick(View view) {
+
         switch (view.getId()){
+
             case R.id.skip_next:
-                getIntentMethod(getNewPosition(FORWARD));
+                direction = FORWARD;
+                getIntentMethod(getNewPosition(direction));
                 break;
             case R.id.play_pause:
                 if(mediaPlayer.isPlaying()){
@@ -328,11 +425,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     mediaPlayer.start();
                     isPlaying = true;
                     playpauseBtn.setImageResource(R.drawable.ic_pause);
-                    albumArt.animate().scaleX(1.2f).scaleY(1.2f).setDuration(300);
+                    albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
                 }
                 break;
             case R.id.skip_prev:
-                getIntentMethod(getNewPosition(BACK));
+                direction = BACK;
+                getIntentMethod(getNewPosition(direction));
                 break;
             case R.id.back_btn:
                 onBackPressed();
@@ -343,7 +441,6 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     position = musicFiles.indexOf(listSongs.get(position));
                     listSongs = (ArrayList<MusicFiles>) musicFiles.clone();
                     shuffleBtn.setImageResource(R.drawable.ic_shuffle);
-                    Toast.makeText(this, "shuffle disabled", Toast.LENGTH_SHORT).show();
                 }else{
                     isShuffle = true;
                     MusicFiles song = listSongs.get(position);
@@ -351,24 +448,22 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     Collections.shuffle(listSongs);
                     listSongs.add(position, song);
                     shuffleBtn.setImageResource(R.drawable.ic_shuffle_on);
-                    Toast.makeText(this, "shuffle enabled", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.repeat:
                 if(isRepeat){
                     isRepeat = false;
                     repeatBtn.setImageResource(R.drawable.ic_repeat);
-                    Toast.makeText(this, "repeat disabled", Toast.LENGTH_SHORT).show();
                 }else{
                     isRepeat = true;
                     repeatBtn.setImageResource(R.drawable.ic_repeat_on);
-                    Toast.makeText(this, "repeat enabled", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.player_menu:
                 PowerMenu powerMenu = new PowerMenu.Builder(this)
                         .addItem(new PowerMenuItem("Enable visualizer", true))
                         .addItem(new PowerMenuItem("Disable visualizer", true))
+                        .addItem(new PowerMenuItem("Equalizer", true))
                         .setLifecycleOwner(this)
                         .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                         .setMenuRadius(30f)
@@ -388,10 +483,14 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             if(position == 0){
                 isVisualize = true;
                 visualizer.show();
+
             }
-            else{
+            else if(position == 1){
                 isVisualize = false;
                 visualizer.hide();
+            }
+            else{
+                fragment.show(getSupportFragmentManager(), "eq");
             }
         }
     };
@@ -402,17 +501,58 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         float seekBarPosition = (xp)/  waveformSeekBar.getWidth() * waveformSeekBar.getMaxProgress();
         seekBarPosition = seekBarPosition < 0 ?0:seekBarPosition;
         seekBarPosition= Math.min(seekBarPosition, waveformSeekBar.getMaxProgress());
-        switch (motionEvent.getAction()){
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_UP:
-                if(mediaPlayer != null){
-                    waveformSeekBar.setProgress(seekBarPosition);
-                    mediaPlayer.seekTo((int) (waveformSeekBar.getProgress() * 1000));
+
+        switch (view.getId()){
+            case R.id.skip_next:
+                switch (motionEvent.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        shouldClick = true;
+                        nextBtn.animate().scaleX(0.8f).scaleY(0.8f).setDuration(50);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        nextBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
+                        if(shouldClick)
+                            view.performClick();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        prevBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
+                        shouldClick = false;
+                        break;
+
                 }
-                break;
-            case MotionEvent.ACTION_MOVE:
-                waveformSeekBar.setProgress(seekBarPosition);
-                break;
+                return true;
+            case R.id.skip_prev:
+                switch (motionEvent.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        shouldClick = true;
+                        prevBtn.animate().scaleX(0.8f).scaleY(0.8f).setDuration(50);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        prevBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
+                        if(shouldClick)
+                            view.performClick();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        prevBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
+                        shouldClick = false;
+                        break;
+
+                }
+                return true;
+            case R.id.waveformSeekBar:
+                switch (motionEvent.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_UP:
+                        if(mediaPlayer != null){
+                            waveformSeekBar.setProgress(seekBarPosition);
+                            mediaPlayer.seekTo((int) (waveformSeekBar.getProgress() * 1000));
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        waveformSeekBar.setProgress(seekBarPosition);
+                        break;
+                }
+
         }
         return true;
     }
