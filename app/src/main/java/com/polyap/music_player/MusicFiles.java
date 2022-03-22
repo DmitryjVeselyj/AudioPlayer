@@ -11,10 +11,29 @@ public class MusicFiles implements Serializable {
 
     private String albumId;
     private String id;
+    private String size;
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(String dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    private String dateAdded;
 
 
 
-    public MusicFiles(String title, String album, String artist, String duration, String path, String albumId, String id) {
+    public MusicFiles(String title, String album, String artist, String duration, String path, String albumId, String id, String dateAdded, String size) {
         this.title = title;
         this.album = album;
         this.artist = artist;
@@ -22,6 +41,8 @@ public class MusicFiles implements Serializable {
         this.path = path;
         this.albumId= albumId;
         this.id = id;
+        this.dateAdded = dateAdded;
+        this.size = size;
     }
 
     public String getTitle() {

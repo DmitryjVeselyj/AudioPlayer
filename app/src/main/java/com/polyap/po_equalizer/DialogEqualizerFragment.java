@@ -1,6 +1,8 @@
 package com.polyap.po_equalizer;
 
 
+import static com.polyap.music_player.PlayerActivity.equalizerBtn;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
@@ -55,9 +57,9 @@ public class DialogEqualizerFragment extends DialogFragment {
     private static       String titleString           = "";
     private static       int    titleRes              = 0;
 
-    static Equalizer        mEqualizer;
-    static BassBoost        bassBoost;
-    static PresetReverb     presetReverb;
+    public static Equalizer        mEqualizer;
+    public static BassBoost        bassBoost;
+    public static PresetReverb     presetReverb;
     private LineSet          dataset;
     private LineChartView    chart;
     private float[]          points;
@@ -137,6 +139,7 @@ public class DialogEqualizerFragment extends DialogFragment {
         presetReverb.setEnabled(true);
 
         mEqualizer.setEnabled(true);
+        equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
 
         if (Settings.presetPos == 0) {
             for (short bandIdx = 0; bandIdx < mEqualizer.getNumberOfBands(); bandIdx++) {
@@ -192,6 +195,12 @@ public class DialogEqualizerFragment extends DialogFragment {
         equalizerSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
+                }
+                else{
+                    equalizerBtn.setImageResource(R.drawable.ic_equalizer);
+                }
                 mEqualizer.setEnabled(isChecked);
                 bassBoost.setEnabled(isChecked);
                 presetReverb.setEnabled(isChecked);
@@ -592,11 +601,9 @@ public class DialogEqualizerFragment extends DialogFragment {
         /*if (mEqualizer != null) {
             mEqualizer.release();
         }
-
         if (bassBoost != null) {
             bassBoost.release();
         }
-
         if (presetReverb != null) {
             presetReverb.release();
         }*/
@@ -657,6 +664,4 @@ public class DialogEqualizerFragment extends DialogFragment {
             return DialogEqualizerFragment.newInstance(id);
         }
     }
-
-
 }

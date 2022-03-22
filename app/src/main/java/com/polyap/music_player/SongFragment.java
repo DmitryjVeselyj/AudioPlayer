@@ -1,23 +1,57 @@
 package com.polyap.music_player;
 
+import static android.content.Context.MODE_PRIVATE;
+import static com.polyap.music_player.MainActivity.MY_SORT_PREF;
+import static com.polyap.music_player.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.MainActivity.isShuffle;
 import static com.polyap.music_player.MainActivity.musicFiles;
+import static com.polyap.music_player.MainActivity.oldMusicPlayed;
+import static com.polyap.music_player.MainActivity.sortOrderText;
+import static com.polyap.music_player.MusicAdapter.musicFilesList;
+import static com.polyap.music_player.PlayerActivity.BACK;
+import static com.polyap.music_player.PlayerActivity.FORWARD;
+import static com.polyap.music_player.PlayerActivity.getPosition;
+import static com.polyap.music_player.PlayerActivity.isChangedMusic;
 
+import static java.lang.Math.random;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.OvershootInterpolator;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.skydoves.powermenu.MenuAnimation;
+import com.skydoves.powermenu.OnMenuItemClickListener;
+import com.skydoves.powermenu.PowerMenu;
+import com.skydoves.powermenu.PowerMenuItem;
+
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 
 public class SongFragment extends Fragment {
 
-    MusicAdapter musicAdapter;
-    RecyclerView recyclerView;
+    static MusicAdapter musicAdapter;
+    static RecyclerView recyclerViewSong;
+    public static String sortDirection = FORWARD;
+    ImageView sortBtn;
+    ImageView shuffleBtn;
+    TextView sortText;
     public SongFragment() {
         // Required empty public constructor
     }
@@ -32,12 +66,163 @@ public class SongFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_song, container, false);
-        recyclerView = view.findViewById(R.id.music_recycle_list);
-        recyclerView.setHasFixedSize(true);
+        recyclerViewSong = view.findViewById(R.id.music_recycle_list);
+        recyclerViewSong.setHasFixedSize(true);
         musicAdapter = new MusicAdapter(getContext(), musicFiles);
-        recyclerView.setAdapter(musicAdapter);
+        recyclerViewSong.setAdapter(musicAdapter);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager((getContext()), RecyclerView.VERTICAL, false));
+        recyclerViewSong.setLayoutManager(new LinearLayoutManager((getContext()), RecyclerView.VERTICAL, false));
+        shuffleBtn = view.findViewById(R.id.shuffleSong);
+        sortBtn = view.findViewById(R.id.sortBtn);
+        sortText = view.findViewById(R.id.sortText);
+        if(sortDirection.equals(FORWARD)) {
+            Collections.reverse(musicFilesList);
+            musicAdapter.notifyDataSetChanged();
+            sortBtn.setImageResource(R.drawable.ic_arrow_up);
+        }
+        else{
+            sortBtn.setImageResource(R.drawable.ic_arrow_down);
+        }
+        sortText.setText(sortOrderText);
+        sortText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                OnMenuItemClickListener<PowerMenuItem> onMenuItemClickListener = new OnMenuItemClickListener<PowerMenuItem>() {
+                    @Override
+                    public void onItemClick(int itemPosition, PowerMenuItem item) {
+                        saveSettingsSort(itemPosition);
+                    }
+                };
+                PowerMenu recycleMenu = new PowerMenu.Builder(getContext())
+                        .addItem(new PowerMenuItem("By name", true))
+                        .addItem(new PowerMenuItem("By date", true))
+                        .addItem(new PowerMenuItem("By size", true))
+                        .setAnimation(MenuAnimation.SHOW_UP_CENTER)
+                        .setMenuRadius(30f)
+                        .setMenuShadow(10f)
+                        .setSelectedEffect(true)
+                        .setOnMenuItemClickListener(onMenuItemClickListener)
+                        .setAutoDismiss(true)
+                        .build();
+
+                recycleMenu.showAsAnchorLeftTop(view);
+            }
+        });
+        sortBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(sortDirection.equals(FORWARD)) {
+                    sortDirection = BACK;
+                    Collections.reverse(musicFilesList);
+                    musicAdapter.notifyDataSetChanged();
+                    sortBtn.setImageResource(R.drawable.ic_arrow_down);
+                }
+                else{
+                    sortDirection = FORWARD;
+                    Collections.reverse(musicFilesList);
+                    musicAdapter.notifyDataSetChanged();
+                    sortBtn.setImageResource(R.drawable.ic_arrow_up);
+                }
+                SharedPreferences.Editor editor = getContext().getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE).edit();
+                editor.putString("direction", sortDirection);
+                editor.apply();
+            }
+        });
+
+        shuffleBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), PlayerActivity.class);
+                intent.putExtra("sender", "MainActivity");
+                isShuffle = true;
+                Random random = new Random();
+                intent.putExtra("position", random.nextInt(musicFilesList.size()));
+                getContext().startActivity(intent);
+            }
+        });
+
+
+
         return view;
     }
+
+    @Override
+    public void onResume() {
+        if (SongFragment.recyclerViewSong != null && isChangedMusic) {
+
+            RecyclerView.Adapter songAdapter = SongFragment.recyclerViewSong.getAdapter();
+            if (songAdapter != null) {
+                if(oldMusicPlayed != null)
+                    songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, oldMusicPlayed));
+                if(currentMusicPlaying != null)
+                    songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, currentMusicPlaying));
+            }
+        }
+        //isChangedMusic = false;
+        super.onResume();
+    }
+
+    public void saveSettingsSort(int position){
+        SharedPreferences.Editor editor = getContext().getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE).edit();
+        switch (position){
+            case 0:
+                editor.putString("sorting", "sortByName");
+                editor.putString("direction", sortDirection);
+                editor.apply();
+                Collections.sort(musicFilesList, new EventDetailSortByName() );
+                sortOrderText = "Sort by name" ;;
+                musicAdapter.notifyDataSetChanged();
+                sortText.setText(sortOrderText);
+                //getActivity().recreate();
+                break;
+            case 1:
+                editor.putString("sorting", "sortByDate");
+                editor.putString("direction", sortDirection);
+                editor.apply();
+                Collections.sort(musicFilesList, new SongFragment.EventDetailSortByDate());
+                musicAdapter.notifyDataSetChanged();
+                sortOrderText = "Sort by date" ;
+                sortText.setText(sortOrderText);
+                //getActivity().recreate();
+                break;
+            case 2:
+                editor.putString("sorting", "sortBySize");
+                editor.putString("direction", sortDirection);
+                editor.apply();
+                Collections.sort(musicFilesList, new SongFragment.EventDetailSortBySize());
+                musicAdapter.notifyDataSetChanged();
+                sortOrderText = "Sort by size" ;
+                sortText.setText(sortOrderText);
+                //getActivity().recreate();
+                break;
+        }
+    }
+    public static class EventDetailSortByName implements java.util.Comparator<MusicFiles> {
+        @Override
+        public int compare(MusicFiles customerEvents1, MusicFiles customerEvents2) {
+            String name1, name2;
+            name1 = customerEvents1.getTitle().toLowerCase().trim();
+            name2 = customerEvents2.getTitle().toLowerCase().trim();
+            return name2.compareTo(name1);
+        }
+    }
+    public static class EventDetailSortByDate implements java.util.Comparator<MusicFiles> {
+        @Override
+        public int compare(MusicFiles customerEvents1, MusicFiles customerEvents2) {
+            int name1date, name2date;
+            name1date = Integer.parseInt(customerEvents1.getDateAdded().toLowerCase().trim());
+            name2date = Integer.parseInt(customerEvents2.getDateAdded().toLowerCase().trim());
+            return name1date- name2date;
+        }
+    }
+    public static class EventDetailSortBySize implements java.util.Comparator<MusicFiles> {
+        @Override
+        public int compare(MusicFiles customerEvents1, MusicFiles customerEvents2) {
+            int name1size, name2size;
+            name1size = Integer.parseInt(customerEvents1.getSize().toLowerCase().trim());
+            name2size = Integer.parseInt(customerEvents2.getSize().toLowerCase().trim());
+            return name1size- name2size;
+        }
+    }
+
 }

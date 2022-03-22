@@ -17,6 +17,9 @@
         android:theme="@style/Theme.Music_Player"
         tools:replace="android:label">
         <activity
+            android:name=".AlbumDetails"
+            android:exported="false" />
+        <activity
             android:name=".PlayerActivity"
             android:exported="false" />
         <activity
@@ -31,7 +34,11 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true"></activity>
+
+            android:exported="true" />
+
+
+
     </application>
 
 </manifest>
