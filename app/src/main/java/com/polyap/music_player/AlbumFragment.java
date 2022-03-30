@@ -5,6 +5,7 @@ import static com.polyap.music_player.MainActivity.musicFiles;
 import static com.polyap.music_player.MainActivity.oldMusicPlayed;
 import static com.polyap.music_player.PlayerActivity.isChangedMusic;
 
+import android.graphics.Rect;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -17,10 +18,12 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
+import me.zhanghai.android.fastscroll.FastScrollerBuilder;
+
 public class AlbumFragment extends Fragment {
 
     static RecyclerView recyclerViewAlbum;
-    AlbumAdapter albumAdapter;
+    static AlbumAdapter albumAdapter;
     static ArrayList<MusicFiles> albums = new ArrayList<>();
     public AlbumFragment() {
         // Required empty public constructor
@@ -38,6 +41,7 @@ public class AlbumFragment extends Fragment {
         recyclerViewAlbum = view.findViewById(R.id.recycle_view_card);
         recyclerViewAlbum.setHasFixedSize(true);
 
+        new FastScrollerBuilder(recyclerViewAlbum).useMd2Style().build();
         ArrayList<String> albumsName = new ArrayList<>();
         for(int i = 0; i < musicFiles.size(); i++){
             if(!albumsName.contains(musicFiles.get(i).getAlbum())){

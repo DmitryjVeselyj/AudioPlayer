@@ -7,7 +7,7 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/ic_splash_launcher">
+            android:src="@drawable/appicon_small">
         </bitmap>
     </item>
 

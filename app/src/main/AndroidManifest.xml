@@ -6,15 +6,17 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/appicon"
         android:label="Poly Player"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/appicon"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Music_Player"
+        android:name=".ApplicationClass"
+        android:theme="@style/Theme.Music_Player1"
         tools:replace="android:label">
         <activity
             android:name=".AlbumDetails"
@@ -38,7 +40,15 @@
             android:exported="true" />
 
 
-
+        <service android:name=".MusicService" android:stopWithTask="true"/>
+        <receiver android:name=".NotificationReceiver" android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="actionprevious"></action>
+                <action android:name="actionnext"></action>
+                <action android:name="actionplay"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

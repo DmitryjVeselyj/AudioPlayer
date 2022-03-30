@@ -2,6 +2,7 @@ package com.polyap.po_equalizer;
 
 
 import static com.polyap.music_player.PlayerActivity.equalizerBtn;
+import static com.polyap.music_player.MainActivity.isEqualize;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -139,7 +140,9 @@ public class DialogEqualizerFragment extends DialogFragment {
         presetReverb.setEnabled(true);
 
         mEqualizer.setEnabled(true);
-        equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
+        if(equalizerBtn != null) {
+            equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
+        }
 
         if (Settings.presetPos == 0) {
             for (short bandIdx = 0; bandIdx < mEqualizer.getNumberOfBands(); bandIdx++) {
@@ -195,11 +198,13 @@ public class DialogEqualizerFragment extends DialogFragment {
         equalizerSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if(isChecked && equalizerBtn!= null){
                     equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
+                    isEqualize = true;
                 }
                 else{
                     equalizerBtn.setImageResource(R.drawable.ic_equalizer);
+                    isEqualize = false;
                 }
                 mEqualizer.setEnabled(isChecked);
                 bassBoost.setEnabled(isChecked);
@@ -543,7 +548,6 @@ public class DialogEqualizerFragment extends DialogFragment {
         ArrayAdapter<String> equalizerPresetSpinnerAdapter = new ArrayAdapter<>(ctx,
                 R.layout.spinner_item,
                 equalizerPresetNames);
-        equalizerPresetSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         equalizerPresetNames.add("Custom");
 
         for (short i = 0; i < mEqualizer.getNumberOfPresets(); i++) {

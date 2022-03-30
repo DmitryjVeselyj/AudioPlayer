@@ -3,7 +3,14 @@ package com.polyap.music_player;
 import static android.content.ContentValues.TAG;
 
 import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
+import static com.polyap.music_player.AlbumFragment.albums;
+import static com.polyap.music_player.MusicAdapter.musicFilesList;
+import static com.polyap.music_player.MusicService.MUSIC_FILE;
+import static com.polyap.music_player.MusicService.MUSIC_LAST_PLAYED;
+import static com.polyap.music_player.PlayerActivity.BACK;
 import static com.polyap.music_player.PlayerActivity.FORWARD;
+import static com.polyap.music_player.PlayerActivity.MUSIC_LIST;
+import static com.polyap.music_player.PlayerActivity.QUEUE_MUSIC;
 import static com.polyap.music_player.PlayerActivity.isChangedMusic;
 import static com.polyap.music_player.SongFragment.recyclerViewSong;
 import static com.polyap.music_player.SongFragment.sortDirection;
@@ -17,9 +24,11 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
 import android.app.SearchManager;
 import android.content.ContentProvider;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -32,6 +41,8 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.SearchView;
 import android.widget.TableLayout;
 import android.widget.Toast;
@@ -40,6 +51,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,28 +63,41 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public final static int MIN_MUSIC_DURATION = 30;
     public final static int REQUEST_CODE = 1;
     public static boolean ALL_PERMISSIONS_GRANTED = false;
-    public static boolean isShuffle = false, isRepeat = false, isVisualize = true;
+    public static boolean isShuffle = false, isRepeat = false, isVisualize = true, isEqualize = true;
     public static MusicFiles oldMusicPlayed;
     public static MusicFiles currentMusicPlaying;
     public static String MY_SORT_PREF = "SortOrder";
     public static String sortOrderText;
+    public static boolean SHOW_MINI_PLAYER = false;
+    public static String PATH_TO_FRAG = null;
+    public static ArrayList<MusicFiles> lastMusicQueue = null;
+    public static int lastMusicPosition=-1;
+    public static MusicService musicServiceMain;
+    ViewPager2 viewPager2;
+    SearchView searchView;
+    static boolean isInit = false;
+
+
+
     String[] PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.RECORD_AUDIO
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.FOREGROUND_SERVICE
     };
 
     static ArrayList<MusicFiles> musicFiles;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         permission();
 
     }
 
     private void Init(){
-        ViewPager2 viewPager2 = findViewById(R.id.main_view_pager2);
+        viewPager2 = findViewById(R.id.main_view_pager2);
         TabLayout tabLayout = findViewById(R.id.main_tab_layout);
         ViewPager2Adapter viewPager2Adapter = new ViewPager2Adapter(this);
         viewPager2Adapter.addFragments(new SongFragment(), "Songs");
@@ -102,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         tabLayoutMediator.attach();
 
 
+
     }
     private boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
@@ -120,6 +146,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         else{
             ALL_PERMISSIONS_GRANTED = true;
             musicFiles = getAllAudio();
+            if(!isInit) {
+                restoreMusic();
+            }
+            isInit = true;
             Init();
         }
 
@@ -141,7 +171,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             }
             if(ALL_PERMISSIONS_GRANTED){
                 musicFiles = getAllAudio();
+                if(!isInit) {
+                    restoreMusic();
+                }
+                isInit = true;
                 Init();
+
             }
             else{
                 ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_CODE);
@@ -153,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public ArrayList<MusicFiles> getAllAudio(){
         SharedPreferences preferences = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE);
         String sortOrder = preferences.getString("sorting", "sortByName");
-        String direction = preferences.getString("direction", FORWARD);
+        String direction = preferences.getString("direction", BACK);
         ArrayList<MusicFiles> tmpAudioList = new ArrayList<>();
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String order = null;
@@ -217,36 +252,114 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        /*MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.search, menu);
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search_option).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));*/
+
         getMenuInflater().inflate(R.menu.search, menu);
         MenuItem menuItem = menu.findItem(R.id.search_option);
-        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView = (SearchView) menuItem.getActionView();
         searchView.setOnQueryTextListener(this);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onQueryTextSubmit(String s) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean onQueryTextChange(String s) {
         String userInput = s.toLowerCase(Locale.ROOT);
         ArrayList<MusicFiles> files = new ArrayList<>();
-        for(MusicFiles song: musicFiles){
-            if(song.getTitle().toLowerCase(Locale.ROOT).contains(userInput)){
-                files.add(song);
-            }
+        int position = viewPager2.getCurrentItem();
+        ArrayList<MusicFiles> album = new ArrayList<>();
+        if(AlbumFragment.albumAdapter != null){
+            album = albums;
         }
-        SongFragment.musicAdapter.updateList(files);
+        if(position == 0) {
+            for (MusicFiles song : musicFiles) {
+                if (song.getTitle().toLowerCase(Locale.ROOT).contains(userInput) || song.getArtist().toLowerCase(Locale.ROOT).contains(userInput)) {
+                    files.add(song);
+                }
+            }
+            SongFragment.musicAdapter.updateList(files);
+            if(AlbumFragment.albumAdapter != null){
+                AlbumFragment.albumAdapter.updateList(album);
+            }
+
+        }
+        else{
+            for (MusicFiles song : album) {
+                if (song.getAlbum().toLowerCase(Locale.ROOT).contains(userInput)|| song.getArtist().toLowerCase(Locale.ROOT).contains(userInput)) {
+                    files.add(song);
+                }
+            }
+            AlbumFragment.albumAdapter.updateList(files);
+            SongFragment.musicAdapter.updateList(musicFiles);
+        }
+
         return true;
     }
+    public void restoreMusic(){
+        SharedPreferences preferences = getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE);
+        SharedPreferences preferencesQueue = getSharedPreferences(QUEUE_MUSIC, MODE_PRIVATE);
+        try {
+            lastMusicPosition = preferences.getInt(MUSIC_FILE, -1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            lastMusicQueue = (ArrayList<MusicFiles>) ObjectSerializer.deserialize(preferencesQueue.getString(MUSIC_LIST, ObjectSerializer.serialize(new ArrayList<MusicFiles>())));
+        }catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        if(lastMusicPosition != -1 && lastMusicQueue != null && lastMusicQueue.size() != 0){
+            for(int i = 0; i < lastMusicQueue.size(); i++){
+                if(!new File(lastMusicQueue.get(i).getPath()).exists()){
+                    lastMusicQueue.remove(i);
+                    lastMusicPosition = lastMusicPosition==i?0:lastMusicPosition;
+                }
+            }
+            if(lastMusicQueue.size() == 0){
+                SHOW_MINI_PLAYER = false;
+                if(musicFiles != null && musicFiles.size() != 0) {
+                    lastMusicPosition = 0;
+                    lastMusicQueue = (ArrayList<MusicFiles>) musicFiles.clone();
+                    SHOW_MINI_PLAYER=true;
+                }
+            }
+            else
+                SHOW_MINI_PLAYER = true;
+        }
+        else{
+
+            SHOW_MINI_PLAYER = false;
+            if(musicFiles != null && musicFiles.size() != 0) {
+                lastMusicPosition = 0;
+                lastMusicQueue = (ArrayList<MusicFiles>) musicFiles.clone();
+                SHOW_MINI_PLAYER=true;
+            }
+        }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+    }
+
 
 
 }

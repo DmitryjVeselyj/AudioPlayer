@@ -9,6 +9,7 @@
     android:clipToPadding="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     tools:context=".PlayerActivity">
 
     <ImageView
@@ -30,7 +31,7 @@
             android:layout_height="40dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_marginLeft="11dp"
+            android:layout_marginLeft="15dp"
             android:src="@drawable/ic_chevron_left1"></ImageView>
 
         <TextView
@@ -88,8 +89,7 @@
         android:id="@+id/seek_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/relative_layout_for_bottom"
-        >
+        android:layout_above="@id/relative_layout_for_bottom">
 
         <LinearLayout
             android:id="@+id/layout_text"
@@ -127,7 +127,7 @@
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:textColor="@color/blacktr"
+                android:textColor="@color/grayt"
                 android:textSize="15sp"></TextView>
         </LinearLayout>
 
@@ -139,8 +139,7 @@
             android:layout_marginStart="32dp"
             android:layout_marginTop="0dp"
             android:layout_marginBottom="11dp"
-            android:text="1:28"
-            android:textColor="@color/blacktr"
+            android:textColor="@color/grayt"
             android:textSize="12sp"></TextView>
 
         <TextView
@@ -152,8 +151,7 @@
             android:layout_marginTop="0dp"
             android:layout_marginEnd="32dp"
             android:layout_marginBottom="11dp"
-            android:text="4:28"
-            android:textColor="@color/blacktr"
+            android:textColor="@color/grayt"
             android:textSize="12sp"></TextView>
 
         <SeekBar
@@ -162,8 +160,10 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/layout_text"
             android:layout_marginStart="17dp"
+            android:backgroundTint="@color/black"
             android:layout_marginTop="0dp"
-            android:layout_marginEnd="19dp"></SeekBar>
+            android:layout_marginEnd="19dp"
+            android:thumbTint="@color/white"></SeekBar>
 
 
     </RelativeLayout>
@@ -191,9 +191,9 @@
             android:id="@+id/skip_prev"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_centerHorizontal="true"
             android:layout_alignTop="@id/play_pause"
             android:layout_alignBottom="@id/play_pause"
+            android:layout_centerHorizontal="true"
             android:layout_marginEnd="35dp"
             android:layout_toLeftOf="@id/play_pause"
             android:src="@drawable/ic_previous1"></ImageView>

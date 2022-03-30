@@ -2,10 +2,18 @@ package com.polyap.music_player;
 
 
 import static com.polyap.music_player.AlbumFragment.albums;
+import static com.polyap.music_player.MainActivity.SHOW_MINI_PLAYER;
 import static com.polyap.music_player.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.MainActivity.lastMusicPosition;
+import static com.polyap.music_player.MainActivity.lastMusicQueue;
 import static com.polyap.music_player.MainActivity.musicFiles;
+import static com.polyap.music_player.MainActivity.musicServiceMain;
 import static com.polyap.music_player.MainActivity.oldMusicPlayed;
+import static com.polyap.music_player.PlayerActivity.isPlaying;
+import static com.polyap.music_player.PlayerActivity.musicService;
 
+import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
@@ -42,6 +50,7 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
     private final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
     private final Context context;
     static ArrayList<MusicFiles> albumFiles;
+    public static ViewHolder lastAlbumHolder;
     private int lastPosition = -1;
     AlbumDetailsAdapter(Context context, ArrayList<MusicFiles> musicFilesList) {
         this.albumFiles = musicFilesList;
@@ -61,21 +70,30 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
         holder.itemView.startAnimation(animation);
         lastPosition = position;
         if(currentMusicPlaying != null && albumFiles.get(position).getId().equals(currentMusicPlaying.getId())) {
+            lastAlbumHolder = holder;
             holder.equalizer.setVisibility(View.VISIBLE);
-            holder.equalizer.animateBars();
+            //holder.equalizer.stopBars();
+            if(isPlaying)
+                holder.equalizer.animateBars();
+            else
+                holder.equalizer.stopBars();
             // holder.fileName.setTextColor(view.getResources().getColor(R.color.purple_200));
-            holder.fileName.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-            holder.fileName.setMarqueeRepeatLimit(-1);
-            holder.fileName.setHorizontallyScrolling(true);
-            holder.fileName.setSingleLine(true);
-            holder.fileName.setSelected(true);
+
+                holder.fileName.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+                holder.fileName.setMarqueeRepeatLimit(-1);
+                holder.fileName.setHorizontallyScrolling(true);
+                holder.fileName.setSingleLine(true);
+                holder.fileName.setSelected(true);
             holder.imageBackground.setBackgroundResource(R.color.purple_200);
         }
         else {
-            holder.equalizer.stopBars();
+            if(!holder.equalizer.isAnimating())
+                holder.equalizer.stopBars();
+            holder.equalizer.setVisibility(View.INVISIBLE);
+            holder.fileName.setEllipsize(TextUtils.TruncateAt.END);
+            holder.fileName.setSingleLine(true);
             holder.fileName.setSelected(false);
-            holder.equalizer.setVisibility(View.GONE);
-            holder.imageBackground.setBackgroundResource(0);
+            holder.imageBackground.setBackgroundColor(Color.BLACK);
         }
         holder.fileName.setText(albumFiles.get(position).getTitle());
         holder.artistName.setText(albumFiles.get(position).getArtist());
@@ -93,22 +111,16 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
                 Intent intent = new Intent(context, PlayerActivity.class);
                 intent.putExtra("sender", "AlbumDetails");
                 intent.putExtra("position", position);
-                Log.d("blyatpos", String.valueOf(position));
-                /*oldMusicPlayed =  currentMusicPlaying;
-
-                if(oldMusicPlayed!= null) {
-                    RecyclerView.Adapter albumDetailsAdapter = AlbumDetails.recyclerView.getAdapter();
-                    if(albumDetailsAdapter != null){
-                        albumDetailsAdapter.notifyItemChanged(albumFiles.indexOf(oldMusicPlayed));
-                    }
-                }
-                currentMusicPlaying = albumFiles.get(position);*/
+                SHOW_MINI_PLAYER = true;
 
                 holder.equalizer.setVisibility(View.VISIBLE);
-                holder.equalizer.animateBars();
+                if(!holder.equalizer.isAnimating())
+                    holder.equalizer.animateBars();
                 // holder.fileName.setTextColor(view.getResources().getColor(R.color.purple_200));
                 holder.imageBackground.setBackgroundResource(R.color.purple_200);
-                context.startActivity(intent);
+               Activity activity = (Activity)context;
+                activity.startActivity(intent);
+                activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);
             }
         });
 
@@ -124,11 +136,13 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
                     }
                 };
                 PowerMenu recycleMenu = new PowerMenu.Builder(context)
-                        .addItem(new PowerMenuItem("Delete", true))
+                        .setMenuColorResource(R.color.black)
+                        .setTextColorResource(R.color.white)
+                        .addItem(new PowerMenuItem("Delete", false))
                         .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                         .setMenuRadius(30f)
                         .setMenuShadow(10f)
-                        .setSelectedEffect(true)
+                        .setSelectedEffect(false)
                         .setOnMenuItemClickListener(onMenuItemClickListener)
                         .setAutoDismiss(true)
                         .build();
@@ -146,6 +160,20 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
         File file = new File(albumFiles.get(position).getPath());
         boolean delete = file.delete();
         if(delete) {
+            if(musicServiceMain.mediaPlayer != null && musicServiceMain.isPlaying() && currentMusicPlaying.getId().equals(albumFiles.get(position).getId())){
+                musicServiceMain.stop();
+                if(albumFiles.size() == 1){
+                    musicServiceMain.stop();
+                    SHOW_MINI_PLAYER = false;
+                    musicServiceMain.updateBottomPlayer.updatePlayer();
+                    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                    mNotificationManager.cancel(12312);
+                }
+                else {
+                    musicServiceMain.updateBottomPlayer.btn_nextClicked();
+                    musicServiceMain.updateBottomPlayer.updatePlayer();
+                }
+            }
             context.getContentResolver().delete(contentUri, null, null);
             if(musicFiles != null) {
                 int indx = musicFiles.indexOf(albumFiles.get(position));
@@ -177,10 +205,10 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
                     albumAdapter.notifyDataSetChanged();
                 }
             }
-            Snackbar.make(view, "Deleted : ", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(view, "Deleted", Snackbar.LENGTH_LONG).show();
         }
         else {
-            Snackbar.make(view, "Can't be deleted : ", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(view, "Can't be deleted", Snackbar.LENGTH_LONG).show();
         }
     }
 

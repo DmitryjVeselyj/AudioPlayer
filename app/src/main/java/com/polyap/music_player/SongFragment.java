@@ -2,8 +2,11 @@ package com.polyap.music_player;
 
 import static android.content.Context.MODE_PRIVATE;
 import static com.polyap.music_player.MainActivity.MY_SORT_PREF;
+import static com.polyap.music_player.MainActivity.SHOW_MINI_PLAYER;
 import static com.polyap.music_player.MainActivity.currentMusicPlaying;
 import static com.polyap.music_player.MainActivity.isShuffle;
+import static com.polyap.music_player.MainActivity.lastMusicPosition;
+import static com.polyap.music_player.MainActivity.lastMusicQueue;
 import static com.polyap.music_player.MainActivity.musicFiles;
 import static com.polyap.music_player.MainActivity.oldMusicPlayed;
 import static com.polyap.music_player.MainActivity.sortOrderText;
@@ -12,11 +15,15 @@ import static com.polyap.music_player.PlayerActivity.BACK;
 import static com.polyap.music_player.PlayerActivity.FORWARD;
 import static com.polyap.music_player.PlayerActivity.getPosition;
 import static com.polyap.music_player.PlayerActivity.isChangedMusic;
+import static com.polyap.music_player.PlayerActivity.position;
 
 import static java.lang.Math.random;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -32,21 +39,25 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+
 import com.skydoves.powermenu.MenuAnimation;
 import com.skydoves.powermenu.OnMenuItemClickListener;
 import com.skydoves.powermenu.PowerMenu;
 import com.skydoves.powermenu.PowerMenuItem;
 
-import org.w3c.dom.Text;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+import me.zhanghai.android.fastscroll.FastScrollerBuilder;
+
+
 
 public class SongFragment extends Fragment {
 
-    static MusicAdapter musicAdapter;
+    public static MusicAdapter musicAdapter;
     static RecyclerView recyclerViewSong;
     public static String sortDirection = FORWARD;
     ImageView sortBtn;
@@ -70,8 +81,9 @@ public class SongFragment extends Fragment {
         recyclerViewSong.setHasFixedSize(true);
         musicAdapter = new MusicAdapter(getContext(), musicFiles);
         recyclerViewSong.setAdapter(musicAdapter);
-
         recyclerViewSong.setLayoutManager(new LinearLayoutManager((getContext()), RecyclerView.VERTICAL, false));
+        new FastScrollerBuilder(recyclerViewSong).useMd2Style().build();
+
         shuffleBtn = view.findViewById(R.id.shuffleSong);
         sortBtn = view.findViewById(R.id.sortBtn);
         sortText = view.findViewById(R.id.sortText);
@@ -94,13 +106,15 @@ public class SongFragment extends Fragment {
                     }
                 };
                 PowerMenu recycleMenu = new PowerMenu.Builder(getContext())
-                        .addItem(new PowerMenuItem("By name", true))
-                        .addItem(new PowerMenuItem("By date", true))
-                        .addItem(new PowerMenuItem("By size", true))
+                        .setMenuColorResource(R.color.black)
+                        .setTextColorResource(R.color.white)
+                        .addItem(new PowerMenuItem("By name", false))
+                        .addItem(new PowerMenuItem("By date", false))
+                        .addItem(new PowerMenuItem("By size", false))
                         .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                         .setMenuRadius(30f)
                         .setMenuShadow(10f)
-                        .setSelectedEffect(true)
+                        .setSelectedEffect(false)
                         .setOnMenuItemClickListener(onMenuItemClickListener)
                         .setAutoDismiss(true)
                         .build();
@@ -136,11 +150,14 @@ public class SongFragment extends Fragment {
                 intent.putExtra("sender", "MainActivity");
                 isShuffle = true;
                 Random random = new Random();
-                intent.putExtra("position", random.nextInt(musicFilesList.size()));
-                getContext().startActivity(intent);
+                int pos = random.nextInt(musicFilesList.size());
+                intent.putExtra("position", pos);
+                Activity activity = (Activity)getContext();
+                activity.startActivity(intent);
+                activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);
+                //getContext().startActivity(intent);
             }
         });
-
 
 
         return view;

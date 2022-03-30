@@ -1,27 +1,17 @@
 package com.polyap.music_player;
 
 import static com.polyap.music_player.MainActivity.musicFiles;
-import static com.polyap.music_player.MusicAdapter.musicFilesList;
 import static com.polyap.music_player.PlayerActivity.getPosition;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,8 +22,10 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
+import me.zhanghai.android.fastscroll.PopupTextProvider;
 
-public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> {
+
+public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> implements PopupTextProvider {
     private final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
     private Context context;
     public ArrayList<MusicFiles> albumFilesFragment;
@@ -77,7 +69,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                         .putExtra("artistName", albumFilesFragment.get(position).getArtist());
                 intent.putExtra("position", getPosition((ArrayList<MusicFiles>) musicFiles, albumFilesFragment.get(position)));
                 ActivityOptions options =
-                        ActivityOptions.makeCustomAnimation(context, R.anim.zoom_in, R.anim.recycleview_animation_up );
+                        ActivityOptions.makeCustomAnimation(context, R.anim.bottom_to_top, R.anim.recycleview_animation_up );
                context.startActivity(intent);
 
 
@@ -92,6 +84,13 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         return albumFilesFragment.size();
     }
 
+    @NonNull
+    @Override
+    public String getPopupText(int position) {
+        String albumN =albumFilesFragment.get(position).getAlbum();
+        return String.valueOf(albumN.charAt(0));
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder{
         ImageView albumImage;
         TextView albumName;
@@ -102,6 +101,12 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
             albumName = itemView.findViewById(R.id.album_name);
             albumArtist = itemView.findViewById(R.id.album_artist);
         }
+    }
+
+    void updateList(ArrayList<MusicFiles> albumList){
+        albumFilesFragment = new ArrayList<>();
+        albumFilesFragment.addAll(albumList);
+        notifyDataSetChanged();
     }
 
 }

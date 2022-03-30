@@ -1,114 +1,80 @@
 package com.polyap.music_player;
 
-import static android.graphics.BlendMode.COLOR;
+import static android.graphics.Color.green;
 import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
 import static com.polyap.music_player.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.MainActivity.isEqualize;
 import static com.polyap.music_player.MainActivity.isRepeat;
 import static com.polyap.music_player.MainActivity.isShuffle;
 import static com.polyap.music_player.MainActivity.isVisualize;
-import static com.polyap.music_player.MainActivity.musicFiles;
+import static com.polyap.music_player.MainActivity.lastMusicPosition;
+import static com.polyap.music_player.MainActivity.lastMusicQueue;
+import static com.polyap.music_player.MainActivity.musicServiceMain;
 import static com.polyap.music_player.MainActivity.oldMusicPlayed;
 import static com.polyap.music_player.MusicAdapter.musicFilesList;
 
+import static com.polyap.music_player.NowPlayingFragmentBottom.updateCurrentSong;
 import static com.polyap.po_equalizer.DialogEqualizerFragment.mEqualizer;
 ;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.widget.ViewPager2;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ArgbEvaluator;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.preference.PreferenceManager;
-import android.text.TextUtils;
-import android.util.DisplayMetrics;
+import android.os.IBinder;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.ScaleAnimation;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 
 import com.gauravk.audiovisualizer.base.BaseVisualizer;
 import com.gauravk.audiovisualizer.visualizer.WaveVisualizer;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.gson.Gson;
-import com.masoudss.lib.SeekBarOnProgressChanged;
 import com.masoudss.lib.WaveformSeekBar;
 import com.polyap.po_equalizer.DialogEqualizerFragment;
-import com.polyap.po_equalizer.EqualizerSettings;
 import com.polyap.po_equalizer.Settings;
 import com.skydoves.powermenu.MenuAnimation;
 import com.skydoves.powermenu.OnMenuItemClickListener;
 import com.skydoves.powermenu.PowerMenu;
 import com.skydoves.powermenu.PowerMenuItem;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import jp.wasabeef.glide.transformations.BlurTransformation;
-import jp.wasabeef.glide.transformations.gpu.BrightnessFilterTransformation;
 
 
-public class PlayerActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
+public class PlayerActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener, ServiceConnection, MediaPlayer.OnCompletionListener, ActionPlaying {
     TextView songName, artistName, durationPlayed, durationTotal;
     ImageView albumArt, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, menuBtn;
     public static ImageView equalizerBtn;
@@ -118,43 +84,73 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     WaveVisualizer visualizer;
     SeekBar seekBar;
     String sender;
-    boolean isPlaying = true;
-    static boolean isChangedMusic = true;
-    private boolean init = false;
-    int position = -1;
-    static ArrayList<MusicFiles> listSongs;
+    public static boolean isPlaying = false;
+    public static boolean isChangedMusic = true;
+    static boolean init = false;
+    public static int position = -1;
     static Uri uri;
-    static MediaPlayer mediaPlayer;
+    //static MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
     private int oldAudioSessionId = -2;
     final static String FORWARD = "forward";
     final static String BACK = "back";
     final static String NOTHING ="nothing";
-    String direction = FORWARD;
+    public static String direction = FORWARD;
     WaveformSeekBar waveformSeekBar;
     ColorDrawable lastColor = new ColorDrawable(Color.BLACK);
     boolean shouldClick = false;
-    DialogEqualizerFragment fragment;
-    ArrayList<MusicFiles> tmp;
+    static DialogEqualizerFragment fragment;
+    static ArrayList<MusicFiles> tmp;
+    static MusicService musicService = musicServiceMain;
+    public static String QUEUE_MUSIC = "QueueMusic";
+    public static String MUSIC_LIST = "MUSIC_LIST";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
-
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null)
             actionBar.hide();
         statusBartoTransparent();
+
         InitViews();
         checkingSender();
-
-        getIntentMethod(position);
+        initService();
         init = true;
         mainListeners();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                saveTracks();
 
+            }
+        };
+        Thread thread = new Thread(runnable);
+        thread.start();
 
     }
+    void initService(){
+        musicService = musicServiceMain;
+        if(musicService == null) {
+            Intent intent = new Intent(this, MusicService.class);
+            intent.putExtra("servicePosition", position);
+            startService(intent);
+            isPlaying = true;
+        }
+        else{
+            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(12312);
 
+            if(musicService.mediaPlayer != null && sender != null && sender.equals("BottomPlayer")) {//кнопка эквалайзера не обновляется
+                designActivity();
+            }
+            else{
+                isPlaying = true;
+                getIntentMethod(position);
+            }
+        }
+    }
     public void statusBartoTransparent(){
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
             setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
@@ -180,7 +176,6 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
         if(resourceId > 0){
             result = getResources().getDimensionPixelSize(resourceId);
-            Log.d("tak", String.valueOf(result) + visualizer.getHeight());
         }
 
 
@@ -189,6 +184,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     public void onBackPressed() {
         visualizer.release();
         super.onBackPressed();
+        overridePendingTransition(R.anim.close_top_to_bottom, R.anim.close_bottom_to_top);
     }
 
     private String formattedTime(int currentPosition){
@@ -205,12 +201,34 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             return totalout;
         }
     }
-
+    private void saveTracks(){
+        SharedPreferences preferences = getSharedPreferences(QUEUE_MUSIC, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        try {
+            editor.putString(MUSIC_LIST, ObjectSerializer.serialize(lastMusicQueue));
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        editor.commit();
+    }
+    private void loadTracks(){
+        SharedPreferences preferences = getSharedPreferences(QUEUE_MUSIC, Context.MODE_PRIVATE);
+        try {
+            lastMusicQueue = (ArrayList<MusicFiles>) ObjectSerializer.deserialize(preferences.getString(MUSIC_LIST, ObjectSerializer.serialize(new ArrayList<MusicFiles>())));
+        }catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     protected void onDestroy() {
         if (visualizer != null)
             visualizer.setEnabled(false);
             visualizer.release();
+        musicService.setCallBack(null);
+
         super.onDestroy();
     }
     public static int getPosition(ArrayList<MusicFiles> tracks, MusicFiles currentFile){
@@ -221,8 +239,9 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         return -1;
     }
-    private void updateSongList(){
-            if (SongFragment.recyclerViewSong != null) {
+
+    public static void updateSongList(){
+            if (SongFragment.recyclerViewSong != null) {//nfstr
 
                 RecyclerView.Adapter songAdapter = SongFragment.recyclerViewSong.getAdapter();
                 if (songAdapter != null) {
@@ -248,11 +267,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private int getNewPosition(String direction){
+        if(isRepeat)
+            return position;
         if(direction.equals(FORWARD)){
-            return (position + 1) % listSongs.size();
+            return (position + 1) % lastMusicQueue.size();
         }
         else{
-            return (position - 1) < 0 ? (listSongs.size()) - 1: position - 1;
+            return (position - 1) < 0 ? (lastMusicQueue.size()) - 1: position - 1;
         }
     }
 
@@ -271,7 +292,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 seekBar.setProgress(seekBar.getProgress());
-                mediaPlayer.seekTo((int) (seekBar.getProgress() * 1000));
+                musicService.seekTo((int) (seekBar.getProgress() * 1000));
+                if(musicService.isPlaying()) {
+                    musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
+                }
+                else{
+                    musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
+                }
             }
         });
 
@@ -279,8 +306,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
        PlayerActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(mediaPlayer != null){
-                    int currentPosition = mediaPlayer.getCurrentPosition() / 1000;
+                if(musicService != null){
+                    int currentPosition = musicService.getCurrentPosition() / 1000;
                     seekBar.setProgress(currentPosition);
                     durationPlayed.setText(formattedTime(currentPosition));
                 }
@@ -289,122 +316,124 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         });
 
 
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                if(isRepeat) {
-                    direction = NOTHING;
-                    getIntentMethod(position);
-                }
-                else {
-                    direction = FORWARD;
-                    getIntentMethod(getNewPosition(direction));
-                }
-            }
-        });
-
         equalizerBtn.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 fragment.show(getSupportFragmentManager(), "eq");
+                isEqualize = true;
                 return false;
             }
         });
+
+
+    }
+    void justShuffle(){
+        MusicFiles song = lastMusicQueue.get(position);
+        lastMusicQueue.remove(song);
+        Collections.shuffle(lastMusicQueue);
+        lastMusicQueue.add(position, song);
+        lastMusicPosition = position;
     }
     private void checkingSender(){
         sender = getIntent().getStringExtra("sender");
         if(sender != null && sender.equals("AlbumDetails")){
-            listSongs = (ArrayList<MusicFiles>) albumFiles.clone();
+            lastMusicQueue = (ArrayList<MusicFiles>) albumFiles.clone();
             tmp = albumFiles;
             this.position = getIntent().getIntExtra("position", -1);
+            if(isShuffle)
+                justShuffle();
         }
         else if(sender != null && sender.equals("MainActivity")){
-            listSongs = (ArrayList<MusicFiles>) ((ArrayList<MusicFiles>)musicFilesList).clone();
+            lastMusicQueue = (ArrayList<MusicFiles>) ((ArrayList<MusicFiles>)musicFilesList).clone();
             tmp = (ArrayList<MusicFiles>) musicFilesList;
             this.position = getIntent().getIntExtra("position", -1);
+            if(isShuffle)
+                justShuffle();
+
         }
-        if(!isShuffle){//фиксануть для альбома
-            //пока ничего
-        }else{
-            MusicFiles song = tmp.get(position);
-            listSongs.remove(song);
-            Collections.shuffle(listSongs);
-            listSongs.add(position, song);
+        else if(sender != null && sender.equals("BottomPlayer")){
+            //tmp = (ArrayList<MusicFiles>) lastMusicQueue; используем lstMusic
+            this.position= lastMusicPosition;
         }
     }
     private void getIntentMethod(int position) {
         this.position = position;
-        if(listSongs != null){
-            uri = Uri.parse(listSongs.get(position).getPath());
+        musicService.setPosition(position);
+        if(lastMusicQueue != null){
+            uri = Uri.parse(lastMusicQueue.get(position).getPath());
             loadImages(position);
-
         }
-        if(mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.reset();
-            try {
-                mediaPlayer.setDataSource(getApplicationContext(), uri);
-                mediaPlayer.prepare();
+            if (musicService.mediaPlayer != null) {
+                musicService.stop();
+                musicService.reset();
+                try {
+                    musicService.setDataSource(uri);
+                    musicService.prepare();
 
-            } catch (IOException e) {
-                e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                musicService.createMediaPlayer(position);
+                musicService.OnCompleted();
+                //mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
             }
-        }
-        else{
-            mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
-        }
+            if (isPlaying || !init) {
+                playpauseBtn.setImageResource(R.drawable.ic_pause);
+                albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
+
+                musicService.start();
+                musicService.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+            } else {
+                playpauseBtn.setImageResource(R.drawable.ic_play);
+                musicService.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
+            }
+
+            seekBar.setProgress(0);
+            seekBar.setMax(musicService.getDuration() / 1000);
 
 
-        if(isPlaying || !init) {
-            playpauseBtn.setImageResource(R.drawable.ic_pause);
-            albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
-
-            mediaPlayer.start();
-        }
-        else{
-            playpauseBtn.setImageResource(R.drawable.ic_play);
-        }
-        seekBar.setProgress(0);
-        seekBar.setMax(mediaPlayer.getDuration() / 1000);
-
-        int audioSessionId = mediaPlayer.getAudioSessionId();
-        if (audioSessionId != -1 && oldAudioSessionId != audioSessionId) {
-            visualizer.setAudioSessionId(audioSessionId);
-            oldAudioSessionId = audioSessionId;
+            int audioSessionId = musicService.getAudioSessionId();
+            if (audioSessionId != -1 && oldAudioSessionId != audioSessionId) {
+                visualizer.setAudioSessionId(audioSessionId);
+                oldAudioSessionId = audioSessionId;
 
 
-        }
-        oldMusicPlayed = currentMusicPlaying;
-        currentMusicPlaying = listSongs.get(position);
-        if(currentMusicPlaying.equals(oldMusicPlayed) || oldMusicPlayed == null)
-            isChangedMusic = true;
-        else
-            isChangedMusic = true;
-        updateSongList();
-        if(fragment != null) {
-            fragment = DialogEqualizerFragment.newBuilder()
-                    .setAudioSessionId(audioSessionId)
-                    .themeColor(ContextCompat.getColor(this, R.color.black))
-                    .textColor(ContextCompat.getColor(this, R.color.white))
-                    .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
-                    .darkColor(ContextCompat.getColor(this, R.color.purple_200))
-                    .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
-                    .build();
-        }
-        else {
-            fragment = DialogEqualizerFragment.newBuilder()
-                    .setAudioSessionId(audioSessionId)
-                    .themeColor(ContextCompat.getColor(this, R.color.black))
-                    .textColor(ContextCompat.getColor(this, R.color.white))
-                    .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
-                    .darkColor(ContextCompat.getColor(this, R.color.purple_200))
-                    .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
-                    .build();
-            equalizerUpdate();
-        }
-        //equalizerUpdate();
+            }
+            oldMusicPlayed = currentMusicPlaying;
+            currentMusicPlaying = lastMusicQueue.get(position);
+            if (currentMusicPlaying.equals(oldMusicPlayed) || oldMusicPlayed == null)
+                isChangedMusic = true;
+            else
+                isChangedMusic = true;
+            Log.d("taks", "na meste");
+            updateSongList();
+            if (fragment != null) {
+                fragment = DialogEqualizerFragment.newBuilder()
+                        .setAudioSessionId(audioSessionId)
+                        .themeColor(ContextCompat.getColor(this, R.color.black))
+                        .textColor(ContextCompat.getColor(this, R.color.white))
+                        .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
+                        .darkColor(ContextCompat.getColor(this, R.color.purple_200))
+                        .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
+                        .build();
+            } else {
+                fragment = DialogEqualizerFragment.newBuilder()
+                        .setAudioSessionId(audioSessionId)
+                        .themeColor(ContextCompat.getColor(this, R.color.black))
+                        .textColor(ContextCompat.getColor(this, R.color.white))
+                        .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
+                        .darkColor(ContextCompat.getColor(this, R.color.purple_200))
+                        .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
+                        .build();
+                equalizerUpdate();
+            }
 
-
+        //musicService.OnCompleted();
+        //musicService.mediaPlayer.setOnCompletionListener(this);
+        lastMusicPosition = position;
+        musicService.saveLastTrack(position);
 
     }
     private void equalizerUpdate(){
@@ -463,8 +492,11 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         equalizerBtn.animate().scaleX(0.9f).scaleY(0.9f).setDuration(50);
 
         seekBar = findViewById(R.id.seekBar_player);
+        seekBar.setProgress(0);
         layoutTop= findViewById(R.id.layout_top_btn);//пока не нужно, но может пригодиться когда-то
         addPaddingTop(playerLayout);
+
+
     }
     private void changeVisualizerColor(BaseVisualizer visualizer){
         Bitmap bitmap = ((BitmapDrawable)albumArt.getDrawable()).getBitmap();
@@ -476,6 +508,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     float[] hsl = swatch.getHsl();
                     hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
                     hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
+                    hsl[2] = hsl[2] > (float) 0.85? (float)0.3:hsl[2];//поменять когда-то
                     int color = ColorUtils.HSLToColor(hsl);
                     visualizer.setColor(color);
 
@@ -507,7 +540,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     private void loadImages(int position){
 
         final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
-        Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(listSongs.get(position).getAlbumId()));
+        Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(lastMusicQueue.get(position).getAlbumId()));
         Animation animationFirst = null;
         Animation animationSecond = null;
         if(direction.equals(FORWARD)) {
@@ -534,9 +567,9 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                         albumArt.setImageResource(R.drawable.msc_back1);
                     }
                     changeVisualizerColor(visualizer);
-                    songName.setText(listSongs.get(position).getTitle());
-                    artistName.setText(listSongs.get(position).getArtist());
-                    durationTotal.setText(formattedTime(Integer.parseInt(listSongs.get(position).getDuration()) / 1000));
+                    songName.setText(lastMusicQueue.get(position).getTitle());
+                    artistName.setText(lastMusicQueue.get(position).getArtist());
+                    durationTotal.setText(formattedTime(Integer.parseInt(lastMusicQueue.get(position).getDuration()) / 1000));
                 }
 
                 @Override
@@ -570,6 +603,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             visualizerBtn.setImageResource(R.drawable.ic_visualizer);
         }
 
+        if(isEqualize){
+            equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
+        }
+        else{
+            equalizerBtn.setImageResource(R.drawable.ic_equalizer);
+        }
+
 
 
 
@@ -588,18 +628,22 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 getIntentMethod(getNewPosition(direction));
                 break;
             case R.id.play_pause:
-                if(mediaPlayer.isPlaying()){
-                    mediaPlayer.pause();
+                if(musicService.isPlaying()){
+                    musicService.pause();
                     isPlaying = false;
                     playpauseBtn.setImageResource(R.drawable.ic_play);
                     albumArt.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300);
+                    musicService.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
                 }
                 else{
-                    mediaPlayer.start();
+                    musicService.start();
                     isPlaying = true;
                     playpauseBtn.setImageResource(R.drawable.ic_pause);
                     albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
+                    musicService.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+
                 }
+                updateCurrentSong();
                 break;
             case R.id.skip_prev:
                 direction = BACK;
@@ -611,15 +655,17 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.shuffle:
                 if(isShuffle){
                     isShuffle = false;
-                    position = tmp.indexOf(listSongs.get(position));//фиксануть для альбома
-                    listSongs = (ArrayList<MusicFiles>) tmp.clone();
+                    position = tmp.indexOf(lastMusicQueue.get(position));
+                    lastMusicQueue = (ArrayList<MusicFiles>) tmp.clone();
+                    lastMusicPosition = position;
                     shuffleBtn.setImageResource(R.drawable.ic_shuffle10_of);
                 }else{
                     isShuffle = true;
-                    MusicFiles song = listSongs.get(position);
-                    listSongs.remove(song);
-                    Collections.shuffle(listSongs);
-                    listSongs.add(position, song);
+                    MusicFiles song = lastMusicQueue.get(position);
+                    lastMusicQueue.remove(song);
+                    Collections.shuffle(lastMusicQueue);
+                    lastMusicQueue.add(position, song);
+                    lastMusicPosition = position;
                     shuffleBtn.setImageResource(R.drawable.ic_shuffle10);
                 }
                 break;
@@ -634,29 +680,32 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 break;
             case R.id.player_menu:
                 PowerMenu powerMenu = new PowerMenu.Builder(this)
-                        .addItem(new PowerMenuItem("Enable visualizer", true))
-                        .addItem(new PowerMenuItem("Disable visualizer", true))
-                        .addItem(new PowerMenuItem("Equalizer", true))
+                        .setMenuColorResource(R.color.black)
+                        .setTextColorResource(R.color.white)
+                        .addItem(new PowerMenuItem("Enable visualizer", false))
+                        .addItem(new PowerMenuItem("Disable visualizer", false))
+                        .addItem(new PowerMenuItem("Equalizer", false))
                         .setLifecycleOwner(this)
                         .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                         .setMenuRadius(30f)
                         .setMenuShadow(10f)
-                        .setSelectedEffect(true)
+                        .setSelectedEffect(false)
                         .setOnMenuItemClickListener(onMenuItemClickListener)
                         .build();
                 powerMenu.showAsDropDown(view);
                 break;
             case R.id.equalizer_btn:
-                Log.d("cyka","bulo" +  String.valueOf(Settings.isEqualizerEnabled) + mEqualizer.getEnabled());
                 if(Settings.isEqualizerEnabled){
                     Settings.isEqualizerEnabled = false;
                     equalizerBtn.setImageResource(R.drawable.ic_equalizer);
                     mEqualizer.setEnabled(false);
+                    isEqualize = false;
                 }
                 else{
                     Settings.isEqualizerEnabled = true;
                     mEqualizer.setEnabled(true);
                     equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
+                    isEqualize = true;
                 }
                 break;
             case R.id.visualizer_btn:
@@ -682,14 +731,17 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             if(position == 0){
                 isVisualize = true;
                 visualizer.show();
+                visualizerBtn.setImageResource(R.drawable.ic_visualizer_on);
 
             }
             else if(position == 1){
                 isVisualize = false;
                 visualizer.hide();
+                visualizerBtn.setImageResource(R.drawable.ic_visualizer);
             }
             else{
                 fragment.show(getSupportFragmentManager(), "eq");
+                isEqualize =true;
             }
         }
     };
@@ -737,5 +789,128 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 return true;
         }
         return true;
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        MusicService.MyBinder myBinder = (MusicService.MyBinder) iBinder;
+        musicService = myBinder.getService();
+        musicService.setCallBack(this);
+        //getIntentMethod(position);
+    }
+    private void designActivity(){
+        musicService.setPosition(position);
+        if(lastMusicQueue != null){
+            uri = Uri.parse(lastMusicQueue.get(position).getPath());
+            loadImages(position);
+        }
+        if (isPlaying) {
+            playpauseBtn.setImageResource(R.drawable.ic_pause);
+            albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
+            musicService.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+        } else {
+            playpauseBtn.setImageResource(R.drawable.ic_play);
+            musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
+        }
+
+        int audioSessionId = musicService.getAudioSessionId();
+        if (audioSessionId != -1 && oldAudioSessionId != audioSessionId) {
+            visualizer.setAudioSessionId(audioSessionId);
+            oldAudioSessionId = audioSessionId;
+
+        }
+        seekBar.setProgress(0);
+        seekBar.setMax(musicService.getDuration() / 1000);
+
+    }
+    @Override
+    protected void onResume() {
+
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, this, BIND_AUTO_CREATE);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+       // unbindService(this);
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        musicService = null;
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        if(isRepeat) {
+            direction = NOTHING;
+            //musicService.playMedia(position);
+            musicService.mediaPlayer.seekTo(0);
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+            getIntentMethod(position);
+        }
+        else {
+            direction = FORWARD;
+            //musicService.playMedia(getNewPosition(direction));
+            musicService.mediaPlayer.seekTo(0);
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+            getIntentMethod(getNewPosition(direction));
+        }
+    }
+
+
+
+    @Override
+    public void btn_play_pauseClicked() {
+        if(musicService.isPlaying()){
+            musicService.pause();
+            isPlaying = false;
+            playpauseBtn.setImageResource(R.drawable.ic_play);
+            musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PAUSED);
+            albumArt.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300);
+        }
+        else{
+            musicService.start();
+            isPlaying = true;
+            playpauseBtn.setImageResource(R.drawable.ic_pause);
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
+            albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
+        }
+        updateCurrentSong();
+    }
+
+    @Override
+    public void btn_nextClicked() {
+        direction = FORWARD;
+        musicService.mediaPlayer.seekTo(0);
+        if(isPlaying)
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+        else
+            musicService.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+        getIntentMethod(getNewPosition(FORWARD));
+    }
+
+    @Override
+    public void btn_prevClicked() {
+        direction = BACK;
+        musicService.mediaPlayer.seekTo(0);
+        if(isPlaying)
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+        else
+            musicService.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+        getIntentMethod(getNewPosition(direction));
+    }
+
+    @Override
+    public void btn_dismiss() {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(12312);
+        if(musicService != null){
+            musicService.pause();
+            isPlaying = false;
+            playpauseBtn.setImageResource(R.drawable.ic_play);
+        }
     }
 }

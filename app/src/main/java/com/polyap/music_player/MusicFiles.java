@@ -13,6 +13,10 @@ public class MusicFiles implements Serializable {
     private String id;
     private String size;
 
+    public MusicFiles() {
+
+    }
+
     public String getSize() {
         return size;
     }
@@ -30,8 +34,6 @@ public class MusicFiles implements Serializable {
     }
 
     private String dateAdded;
-
-
 
     public MusicFiles(String title, String album, String artist, String duration, String path, String albumId, String id, String dateAdded, String size) {
         this.title = title;

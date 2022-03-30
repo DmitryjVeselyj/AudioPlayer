@@ -16,11 +16,10 @@
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/album_image"
-
             android:layout_width="match_parent"
             android:layout_height="170dp"
             android:background="@drawable/msc_back1"
-            app:shapeAppearanceOverlay="@style/roundedAlbum"></com.google.android.material.imageview.ShapeableImageView>
+            app:shapeAppearanceOverlay="@style/roundedAlbum"></com.google.android.material.imageview.ShapeableImageView>-->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -38,7 +37,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/album_artist"
             android:layout_below="@id/album_name"
-            android:textColor="@color/white"
+            android:textColor="@color/grayt"
             android:singleLine="true"
             android:gravity="center_horizontal"
             android:layout_centerHorizontal="true"

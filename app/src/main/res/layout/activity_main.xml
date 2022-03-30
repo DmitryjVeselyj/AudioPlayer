@@ -6,22 +6,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/black"
     tools:context=".MainActivity">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/main_tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:tabTextColor="@color/grayt"
+        app:tabSelectedTextColor="@color/purple_200"
+        app:tabIndicatorColor="@color/purple_201"
+        app:tabRippleColor="@color/purple_200"
         app:tabIndicatorFullWidth="true"
         app:tabIndicatorGravity="bottom"
         app:tabIndicatorHeight="1dp"
+        app:tabTextAppearance="@style/MineCustomTabText"
         tools:layout_editor_absoluteX="44dp"
         tools:layout_editor_absoluteY="7dp">
     </com.google.android.material.tabs.TabLayout>
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/main_view_pager2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_height="wrap_content">
     </androidx.viewpager2.widget.ViewPager2>
+
+
+
 </LinearLayout>

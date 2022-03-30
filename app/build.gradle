@@ -28,6 +28,8 @@ android {
 }
 
 dependencies {
+    implementation 'me.zhanghai.android.fastscroll:library:1.1.7'
+
     implementation 'com.github.bumptech.glide:glide:4.13.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.0'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
@@ -43,9 +45,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.9.0'
 
     implementation 'com.github.claucookie.miniequalizer:library:1.0.0'
-    // Amplitude will allow you to call setSampleFrom() with files, URLs and resources
-    // Important: Only works with api level 21 and higher
-    implementation 'com.github.lincollincol:amplituda:2.1.0' // or newer version
+
+    implementation 'com.github.lincollincol:amplituda:2.1.0'
     implementation 'com.diogobernardino:williamchart:2.2'
     implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.0'
 
