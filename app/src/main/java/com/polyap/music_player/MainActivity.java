@@ -13,6 +13,7 @@ import static com.polyap.music_player.PlayerActivity.FORWARD;
 import static com.polyap.music_player.PlayerActivity.MUSIC_LIST;
 import static com.polyap.music_player.PlayerActivity.QUEUE_MUSIC;
 import static com.polyap.music_player.PlayerActivity.isChangedMusic;
+import static com.polyap.music_player.PlayerActivity.setWindowFlag;
 import static com.polyap.music_player.SongFragment.recyclerViewSong;
 import static com.polyap.music_player.SongFragment.sortDirection;
 
@@ -103,7 +104,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
+        /*Window window = getWindow();
+        window.setFlags(
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+        );*/
         permission();
 
     }
@@ -374,6 +379,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         super.onBackPressed();
 
     }
+
 
 }
 

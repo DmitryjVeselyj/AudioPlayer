@@ -32,20 +32,20 @@
         android:id="@+id/main_view_pager2"
         android:layout_width="match_parent"
         android:layout_weight="1"
-        android:layout_marginBottom="-85dp"
+        android:layout_marginBottom="-95dp"
         android:layout_height="0dp">
     </androidx.viewpager2.widget.ViewPager2>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:background="@drawable/main_bg"
-        android:layout_marginBottom="-85dp"
-        android:layout_height="85dp">
+        android:layout_marginBottom="-95dp"
+        android:layout_height="95dp">
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
 
         app:cardCornerRadius="10dp"
         android:id="@+id/frag_bottom_player">

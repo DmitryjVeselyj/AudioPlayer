@@ -508,7 +508,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     float[] hsl = swatch.getHsl();
                     hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
                     hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
-                    hsl[2] = hsl[2] > (float) 0.80? (float)0.3:hsl[2];//поменять когда-то
+                    hsl[2] = hsl[2] > (float) 0.90? (float)0.3:hsl[2];//поменять когда-то
                     int color = ColorUtils.HSLToColor(hsl);
                     visualizer.setColor(color);
 

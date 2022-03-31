@@ -95,8 +95,7 @@ public class AlbumDetails extends AppCompatActivity {
         }
         albumNameText.setText(albumName);
         artistNameText.setText(albumArtist);
-        //textTop.setTitle(albumName);
-        //textTop.setTitleTextColor(Color.WHITE);
+
         loadImage(position);
         recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -107,16 +106,7 @@ public class AlbumDetails extends AppCompatActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                //int scrollY = getScrollY();
-                //sticky actionbar
-                //textTop.setTranslationY(Math.max(-scrollY, mMinHeaderTranslation));
-                //header_logo --> actionbar icon
-                //float ratio = clamp(textTop.getTranslationY(), 0.0f, 1.0f);
-                //actionbar title alpha
-                //textTop.setAlpha(clamp(5.0F * ratio - 4.0F, 0.0F, 1.0F));
-                //---------------------------------
-                //better way thanks to @cyrilmottier
-                //textTop.animate().alpha(1f);
+
             }
         });
 
