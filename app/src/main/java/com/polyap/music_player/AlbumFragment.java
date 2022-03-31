@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 import me.zhanghai.android.fastscroll.FastScrollerBuilder;
 
-public class AlbumFragment extends Fragment {
+public class AlbumFragment extends Fragment  {
 
     static RecyclerView recyclerViewAlbum;
     static AlbumAdapter albumAdapter;
@@ -40,7 +40,6 @@ public class AlbumFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_album, container, false);
         recyclerViewAlbum = view.findViewById(R.id.recycle_view_card);
         recyclerViewAlbum.setHasFixedSize(true);
-
         new FastScrollerBuilder(recyclerViewAlbum).useMd2Style().build();
         ArrayList<String> albumsName = new ArrayList<>();
         for(int i = 0; i < musicFiles.size(); i++){

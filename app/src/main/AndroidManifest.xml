@@ -40,7 +40,7 @@
             android:exported="true" />
 
 
-        <service android:name=".MusicService" android:stopWithTask="true"/>
+        <service android:name=".MusicService" android:enabled="true"/>
         <receiver android:name=".NotificationReceiver" android:enabled="true"
             android:exported="false">
             <intent-filter>

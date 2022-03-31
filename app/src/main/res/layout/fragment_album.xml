@@ -4,13 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
+    android:background="@color/black"
     tools:context=".AlbumFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="85dp"
         android:id="@+id/recycle_view_card">
     </androidx.recyclerview.widget.RecyclerView>
+
 
 </RelativeLayout>

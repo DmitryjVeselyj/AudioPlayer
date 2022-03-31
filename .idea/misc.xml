@@ -64,8 +64,10 @@
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/popup_item_design.xml" value="0.196" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/popup_menu_background.xml" value="0.196" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/rounded_color_text_view.xml" value="0.196" />
+        <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/rounded_player.xml" value="0.196" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/seekbar_progress.xml" value="0.196" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/splash_screen.xml" value="0.196" />
+        <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/tab_indicator_style.xml" value="0.196" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/drawable/tab_selector.xml" value="0.196" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/font/circular_family.xml" value="0.17905982905982906" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/font/gotham_family.xml" value="0.17905982905982906" />
@@ -80,7 +82,7 @@
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_album.xml" value="0.15427350427350428" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_equalizer.xml" value="0.15427350427350428" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_image_slide.xml" value="0.30085470085470084" />
-        <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_now_playing_bottom.xml" value="0.15427350427350428" />
+        <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_now_playing_bottom.xml" value="0.33" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_screen_slide.xml" value="0.15427350427350428" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/fragment_song.xml" value="0.18802083333333333" />
         <entry key="..\:/Users/dmves/Documents/AndroidStudioProjects/MusicPlayer/app/src/main/res/layout/layout_with_player.xml" value="0.15256410256410258" />

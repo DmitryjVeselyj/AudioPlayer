@@ -61,29 +61,10 @@
         android:id="@+id/music_recycle_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-
-        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-        android:paddingBottom="50dp"
-        >
+        android:clipToPadding="false"
+        android:paddingBottom="85dp"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
     </androidx.recyclerview.widget.RecyclerView>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="8dp"
-        android:layout_gravity="bottom"
-        android:layout_marginRight="8dp"
-        app:cardCornerRadius="10dp"
-        android:id="@+id/frag_bottom_player">
-        <fragment
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/bottom_frag"
-            android:name="com.polyap.music_player.NowPlayingFragmentBottom"
-            tools:layout="@layout/fragment_now_playing_bottom">
-        </fragment>
-    </androidx.cardview.widget.CardView>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

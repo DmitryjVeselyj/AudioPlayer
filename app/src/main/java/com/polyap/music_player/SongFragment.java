@@ -15,6 +15,7 @@ import static com.polyap.music_player.PlayerActivity.BACK;
 import static com.polyap.music_player.PlayerActivity.FORWARD;
 import static com.polyap.music_player.PlayerActivity.getPosition;
 import static com.polyap.music_player.PlayerActivity.isChangedMusic;
+import static com.polyap.music_player.PlayerActivity.isPlaying;
 import static com.polyap.music_player.PlayerActivity.position;
 
 import static java.lang.Math.random;
@@ -152,6 +153,7 @@ public class SongFragment extends Fragment {
                 Random random = new Random();
                 int pos = random.nextInt(musicFilesList.size());
                 intent.putExtra("position", pos);
+                isPlaying = true;
                 Activity activity = (Activity)getContext();
                 activity.startActivity(intent);
                 activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);

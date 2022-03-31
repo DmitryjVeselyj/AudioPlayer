@@ -2,6 +2,7 @@ package com.polyap.music_player;
 
 import static android.content.ContentValues.TAG;
 
+import static com.polyap.music_player.AlbumAdapter.albumFilesFragment;
 import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
 import static com.polyap.music_player.AlbumFragment.albums;
 import static com.polyap.music_player.MusicAdapter.musicFilesList;
@@ -17,13 +18,16 @@ import static com.polyap.music_player.SongFragment.sortDirection;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.NotificationManager;
 import android.app.SearchManager;
 import android.content.ContentProvider;
@@ -32,8 +36,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -42,13 +49,17 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.SearchView;
 import android.widget.TableLayout;
 import android.widget.Toast;
 
+
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -92,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
         permission();
 
     }
@@ -103,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         viewPager2Adapter.addFragments(new SongFragment(), "Songs");
         viewPager2Adapter.addFragments(new AlbumFragment(), "Albums");
         viewPager2.setAdapter(viewPager2Adapter);
+        viewPager2.setPageTransformer(new Pager2_ZoomOutTransformer());
+
+
         TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabLayout, viewPager2, new TabLayoutMediator.TabConfigurationStrategy(){
             @Override
             public void onConfigureTab(TabLayout.Tab tab, int position) {
@@ -293,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         }
         else{
-            for (MusicFiles song : album) {
+            for (MusicFiles song : albums) {
                 if (song.getAlbum().toLowerCase(Locale.ROOT).contains(userInput)|| song.getArtist().toLowerCase(Locale.ROOT).contains(userInput)) {
                     files.add(song);
                 }
@@ -360,6 +375,27 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     }
 
+}
 
+class Pager2_ZoomOutTransformer implements ViewPager2.PageTransformer {
 
+    private static final float MIN_SCALE = 0.65f;
+    private static final float MIN_ALPHA = 0.3f;
+
+    @Override
+    public void transformPage(@NonNull View page, float position) {
+        if (position <-1){  // [-Infinity,-1)
+            // This page is way off-screen to the left.
+            page.setAlpha(0);
+        }
+        else if (position <=1){ // [-1,1]
+            page.setScaleX(Math.max(MIN_SCALE,1-Math.abs(position)));
+            page.setScaleY(Math.max(MIN_SCALE,1-Math.abs(position)));
+            page.setAlpha(Math.max(MIN_ALPHA,1-Math.abs(position)));
+        }
+        else {  // (1,+Infinity]
+            // This page is way off-screen to the right.
+            page.setAlpha(0);
+        }
+    }
 }

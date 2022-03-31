@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".NowPlayingFragmentBottom">
 
@@ -29,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="6dp"
             android:src="@drawable/ic_next_2"></ImageView>
 
         <ImageView
@@ -37,14 +36,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="6dp"
             android:layout_toStartOf="@id/skip_next_bottom"
             android:backgroundTint="@color/white"
             android:src="@drawable/ic_play_n"
             app:fabSize="mini"></ImageView>
+        <ImageView
+            android:id="@+id/skip_prev_bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/play_pause_miniPlayer"
+            android:layout_marginEnd="6dp"
+            android:src="@drawable/ic_previous_2"></ImageView>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_toStartOf="@id/play_pause_miniPlayer"
+            android:layout_toStartOf="@id/skip_prev_bottom"
             android:layout_toEndOf="@id/bottom_album_art"
             android:orientation="vertical"
             android:layout_height="wrap_content">

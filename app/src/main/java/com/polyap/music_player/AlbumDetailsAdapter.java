@@ -118,6 +118,7 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
                     holder.equalizer.animateBars();
                 // holder.fileName.setTextColor(view.getResources().getColor(R.color.purple_200));
                 holder.imageBackground.setBackgroundResource(R.color.purple_200);
+                isPlaying = true;
                Activity activity = (Activity)context;
                 activity.startActivity(intent);
                 activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);

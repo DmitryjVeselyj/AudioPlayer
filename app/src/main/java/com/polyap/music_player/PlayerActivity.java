@@ -142,11 +142,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(12312);
 
-            if(musicService.mediaPlayer != null && sender != null && sender.equals("BottomPlayer")) {//кнопка эквалайзера не обновляется
+            if(musicService.mediaPlayer != null && sender != null && sender.equals("BottomPlayer")) {
+
                 designActivity();
             }
             else{
-                isPlaying = true;
+               // isPlaying = true;
                 getIntentMethod(position);
             }
         }
@@ -379,7 +380,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 musicService.OnCompleted();
                 //mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
             }
-            if (isPlaying || !init) {
+            if (isPlaying ) {
                 playpauseBtn.setImageResource(R.drawable.ic_pause);
                 albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
 
@@ -407,7 +408,6 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 isChangedMusic = true;
             else
                 isChangedMusic = true;
-            Log.d("taks", "na meste");
             updateSongList();
             if (fragment != null) {
                 fragment = DialogEqualizerFragment.newBuilder()
@@ -508,7 +508,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                     float[] hsl = swatch.getHsl();
                     hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
                     hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
-                    hsl[2] = hsl[2] > (float) 0.85? (float)0.3:hsl[2];//поменять когда-то
+                    hsl[2] = hsl[2] > (float) 0.80? (float)0.3:hsl[2];//поменять когда-то
                     int color = ColorUtils.HSLToColor(hsl);
                     visualizer.setColor(color);
 
@@ -912,5 +912,6 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             isPlaying = false;
             playpauseBtn.setImageResource(R.drawable.ic_play);
         }
+        updateCurrentSong();
     }
 }

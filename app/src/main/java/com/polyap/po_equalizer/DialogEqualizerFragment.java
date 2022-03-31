@@ -149,6 +149,7 @@ public class DialogEqualizerFragment extends DialogFragment {
                 mEqualizer.setBandLevel(bandIdx, (short) Settings.seekbarpos[bandIdx]);
             }
         } else {
+
             mEqualizer.usePreset((short) Settings.presetPos);
         }
 
@@ -288,6 +289,8 @@ public class DialogEqualizerFragment extends DialogFragment {
                 if(bassProgress == -1)
                     bassProgress = progress;
                 try {
+                    Settings.presetPos = 0;
+                    Settings.equalizerModel.setPresetPos(0);
                     bassBoost.setStrength(Settings.bassStrength);
                     Settings.equalizerModel.setBassStrength(Settings.bassStrength);
                     short numberOfFreqBands = 5;
@@ -313,8 +316,10 @@ public class DialogEqualizerFragment extends DialogFragment {
                         Settings.equalizerModel.getSeekbarpos()[i] = volumeProgress[i] + lowerEqualizerBandLevel;
                         if(bassProgress == 1 && reverbProgress == 1){
                             seekBarFinal[i].setEnabled(true);
+                            presetSpinner.setEnabled(true);
                         }
                         else{
+                            presetSpinner.setEnabled(false);
                             seekBarFinal[i].setEnabled(false);
                         }
                     }
@@ -336,6 +341,8 @@ public class DialogEqualizerFragment extends DialogFragment {
                 if(reverbProgress == -1)
                     reverbProgress= progress;
                 try {
+                    Settings.presetPos = 0;
+                    Settings.equalizerModel.setPresetPos(0);
                     presetReverb.setPreset(Settings.reverbPreset);
                     short numberOfFreqBands = 5;
                     final short lowerEqualizerBandLevel = mEqualizer.getBandLevelRange()[0];
@@ -359,8 +366,10 @@ public class DialogEqualizerFragment extends DialogFragment {
                         Settings.equalizerModel.getSeekbarpos()[i] = volumeProgress[i] + + lowerEqualizerBandLevel;
                         if(bassProgress == 1 && reverbProgress == 1){
                             seekBarFinal[i].setEnabled(true);
+                            presetSpinner.setEnabled(true);
                         }
                         else{
+                            presetSpinner.setEnabled(false);
                             seekBarFinal[i].setEnabled(false);
                         }
                     }
@@ -566,6 +575,10 @@ public class DialogEqualizerFragment extends DialogFragment {
                     if (position != 0) {
                         mEqualizer.usePreset((short) (position - 1));
                         Settings.presetPos = position;
+                        bassProgress  = 1;
+                        reverbProgress = 1;
+                        bassController.setProgress(bassProgress);
+                        reverbController.setProgress(reverbProgress);
                         short numberOfFreqBands = 5;
 
                         final short lowerEqualizerBandLevel = mEqualizer.getBandLevelRange()[0];

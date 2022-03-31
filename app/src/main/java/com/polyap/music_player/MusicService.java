@@ -67,7 +67,10 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         mNotificationManager.cancel(12312);
         super.onTaskRemoved(rootIntent);
     }
-
+    void deleteNot(){
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(12312);
+    }
     @Override
     public void onDestroy() {
 

@@ -64,7 +64,7 @@ import java.util.ArrayList;
 
 public class NowPlayingFragmentBottom extends Fragment implements ServiceConnection, UpdateBottomPlayer {
 
-    ImageView nextBtn, albumArt;
+    ImageView nextBtn, albumArt, prevBtn;
     TextView artist, songName;
     ImageView playPauseBtn;
     public static View view;//мб под статики сделать
@@ -87,6 +87,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
         initService();
         musicServiceMain = musicServiceFrag;
+
     }
 
     @Override
@@ -97,6 +98,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         songName = view.findViewById(R.id.song_name_miniPlayer);
         albumArt = view.findViewById(R.id.bottom_album_art);
         nextBtn = view.findViewById(R.id.skip_next_bottom);
+        prevBtn = view.findViewById(R.id.skip_prev_bottom);
         playPauseBtn = view.findViewById(R.id.play_pause_miniPlayer);
         songName.setSelected(true);
         artist.setSelected(true);
@@ -106,6 +108,16 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
             public void onClick(View view) {
                 if(musicServiceFrag != null){
                     playMusic(getNewPosition(FORWARD));
+                    updatePlayer();
+
+                }
+            }
+        });
+        prevBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(musicServiceFrag != null){
+                    playMusic(getNewPosition(BACK));
                     updatePlayer();
 
                 }
@@ -328,10 +340,6 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
             intent.putExtra("servicePosition", plPosition);
             getContext().startService(intent);
         }
-        else{
-            NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(12312);
-        }
     }
 
     private void changeBackColor(){
@@ -344,7 +352,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
                     float[] hsl = swatch.getHsl();
                     hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
                     hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
-                    hsl[2] = hsl[2] > (float) 0.85? (float)0.3:hsl[2];//поменять когда-то
+                    hsl[2] = hsl[2] > (float) 0.83? (float)0.3:hsl[2];//поменять когда-то
                     int color = ColorUtils.HSLToColor(hsl);
                     ColorDrawable colorDrawable1 = new ColorDrawable(color);
                     ColorDrawable[] cd = {lastColorBottom, colorDrawable1};
@@ -428,19 +436,28 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     @Override
     public void btn_dismiss() {
-        NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.cancel(12312);
+        Activity activity = getActivity();
+        if(activity != null && activity.getBaseContext() != null) {
+            NotificationManager mNotificationManager = (NotificationManager) activity.getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(12312);
+        }
+
         if(musicServiceFrag != null){
             musicServiceFrag.pause();
+            musicServiceFrag.deleteNot();
             isPlaying = false;
             playPauseBtn.setImageResource(R.drawable.ic_play_n);
         }
+        updateCurrentSong();
     }
 
     @Override
     public void btn_start() {
         playMusic(plPosition);
     }
-
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+    }
 
 }

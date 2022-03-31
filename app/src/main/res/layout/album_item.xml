@@ -18,6 +18,7 @@
             android:id="@+id/album_image"
             android:layout_width="match_parent"
             android:layout_height="170dp"
+            android:transitionName="art"
             android:background="@drawable/msc_back1"
             app:shapeAppearanceOverlay="@style/roundedAlbum"></com.google.android.material.imageview.ShapeableImageView>-->
         <TextView

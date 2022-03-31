@@ -39,6 +39,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -62,6 +63,7 @@ public class MusicAdapter  extends RecyclerView.Adapter<MusicAdapter.ViewHolder>
     static   ArrayList<MusicFiles> musicFilesList;
     public static ViewHolder lastHolder;
     private int lastPosition = -1;
+    static CardView bottomPlayer;
 
     MusicAdapter(Context context, ArrayList<MusicFiles> musicFilesList) {
         this.musicFilesList = musicFilesList;
@@ -138,6 +140,7 @@ public class MusicAdapter  extends RecyclerView.Adapter<MusicAdapter.ViewHolder>
                 holder.imageBackground.setBackgroundResource(R.color.purple_200);
 
                 Activity activity = (Activity)context;
+                isPlaying = true;
                 activity.startActivity(intent);
                 activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);
 
@@ -249,6 +252,7 @@ public class MusicAdapter  extends RecyclerView.Adapter<MusicAdapter.ViewHolder>
             equalizer = (EqualizerView) view.findViewById(R.id.equalizer_view);
             musicLayout = view.findViewById(R.id.music_item_layout);
             imageBackground = view.findViewById(R.id.image_background);
+            //bottomPlayer = view.findViewById(R.id.frag_bottom_player);
 
         }
 
