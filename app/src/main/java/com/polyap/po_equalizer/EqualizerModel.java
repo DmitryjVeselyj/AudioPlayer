@@ -3,7 +3,7 @@ package com.polyap.po_equalizer;
 import java.io.Serializable;
 
 /**
- * Created by Harjot on 09-Dec-16.
+ * Модель эквалайзера
  */
 
 public class EqualizerModel implements Serializable {

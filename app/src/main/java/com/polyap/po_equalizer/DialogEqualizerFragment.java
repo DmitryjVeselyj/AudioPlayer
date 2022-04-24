@@ -46,6 +46,9 @@ import com.polyap.music_player.R;
 import java.util.ArrayList;
 
 
+/**
+ * Сама экваоайзер
+ */
 public class DialogEqualizerFragment extends DialogFragment {
     public static final  String ARG_AUDIO_SESSIOIN_ID = "audio_session_id";
     private static final String TAG                   = DialogEqualizerFragment.class.getSimpleName();
@@ -80,6 +83,10 @@ public class DialogEqualizerFragment extends DialogFragment {
         // Required empty public constructor
     }
 
+    /**
+     * @param audioSessionId идентификатор аудиосессии
+     * @return фрагмент
+     */
     private static DialogEqualizerFragment newInstance(int audioSessionId) {
 
         Bundle args = new Bundle();
@@ -94,12 +101,20 @@ public class DialogEqualizerFragment extends DialogFragment {
         return new Builder();
     }
 
+    /**
+     * Получаем тему
+     * @return возаращение идентификатора темы
+     */
     @Override
     public int getTheme() {
         if (themeRes != 0) return themeRes;
         else return super.getTheme();
     }
 
+    /**
+     * Вызывается при создании фрагмента
+     * @param savedInstanceState сохранённое состояние
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -156,18 +171,37 @@ public class DialogEqualizerFragment extends DialogFragment {
 
     }
 
+    /**
+     * Привязка контекста
+     * @param context контекст
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         ctx = context;
     }
 
+    /**
+     * Инициализация
+     *
+     * @param inflater           экземляр класса, создающего из layout-файла View-элемент
+     * @param container          ViewGroup контейнер
+     * @param savedInstanceState сохранённое состояние
+     * @return View
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.dialog_fragment_equalizer, container, false);
     }
 
+
+    /**
+     * Вызывается при создании View
+     *
+     * @param view               View объект
+     * @param savedInstanceState сохранённое состояние
+     */
     @SuppressLint("SetTextI18n")
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -538,7 +572,7 @@ public class DialogEqualizerFragment extends DialogFragment {
 
     }
 
-
+    //геттеры
     public TextView getTitleTextView() {
         return titleTextView;
     }
@@ -551,7 +585,9 @@ public class DialogEqualizerFragment extends DialogFragment {
         return reverbController;
     }
 
-
+    /**
+     * Изменение "звука" эквалайзером
+     */
     public void equalizeSound() {
         ArrayList<String> equalizerPresetNames = new ArrayList<>();
         ArrayAdapter<String> equalizerPresetSpinnerAdapter = new ArrayAdapter<>(ctx,
@@ -615,20 +651,10 @@ public class DialogEqualizerFragment extends DialogFragment {
     public void onDestroy() {
         super.onDestroy();
 
-        /*if (mEqualizer != null) {
-            mEqualizer.release();
-        }
-        if (bassBoost != null) {
-            bassBoost.release();
-        }
-        if (presetReverb != null) {
-            presetReverb.release();
-        }*/
-
         Settings.isEditing = false;
 
     }
-
+    //билдер
     public static class Builder {
         private int id = -1;
 

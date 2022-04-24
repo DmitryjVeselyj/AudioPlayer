@@ -43,13 +43,13 @@ import java.util.ArrayList;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * Фрагмент, который есть подкласс
  */
 public class EqualizerFragment extends Fragment {
 
     public static final String ARG_AUDIO_SESSIOIN_ID = "audio_session_id";
 
-    static int       themeColor = Color.parseColor("#B24242");
+    static int themeColor = Color.parseColor("#B24242");
     public Equalizer mEqualizer;
     SwitchCompat equalizerSwitch;
     LineChartView chart;
@@ -57,8 +57,8 @@ public class EqualizerFragment extends Fragment {
 
     int y = 0;
 
-    ImageView    spinnerDropDownIcon;
-    TextView     fragTitle;
+    ImageView spinnerDropDownIcon;
+    TextView fragTitle;
     LinearLayout mLinearLayout;
 
     SeekBar[] seekBarFinal = new SeekBar[5];
@@ -75,12 +75,16 @@ public class EqualizerFragment extends Fragment {
     }
 
     LineSet dataset;
-    Paint   paint;
+    Paint paint;
     float[] points;
-    short   numberOfFrequencyBands;
-    private int     audioSesionId;
-    static  boolean showBackButton = true;
+    short numberOfFrequencyBands;
+    private int audioSesionId;
+    static boolean showBackButton = true;
 
+    /**
+     * @param audioSessionId идентификатор аудиосессии
+     * @return фрагмент
+     */
     public static EqualizerFragment newInstance(int audioSessionId) {
 
         Bundle args = new Bundle();
@@ -91,6 +95,11 @@ public class EqualizerFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Вызывается при создании фрагмента
+     *
+     * @param savedInstanceState сохранённое состояние
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,18 +125,37 @@ public class EqualizerFragment extends Fragment {
         }
     }
 
+    /**
+     * Привязка контекста
+     *
+     * @param context контекст
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         ctx = context;
     }
 
+    /**
+     * Инициализация
+     *
+     * @param inflater           экземляр класса, создающего из layout-файла View-элемент
+     * @param container          ViewGroup контейнер
+     * @param savedInstanceState сохранённое состояние
+     * @return View
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_equalizer, container, false);
     }
 
+    /**
+     * Вызывается при создании View
+     *
+     * @param view               View объект
+     * @param savedInstanceState сохранённое состояние
+     */
     @SuppressLint("SetTextI18n")
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -171,11 +199,9 @@ public class EqualizerFragment extends Fragment {
         equalizerBlocker = view.findViewById(R.id.equalizerBlocker);
 
 
-        chart   = view.findViewById(R.id.lineChart);
-        paint   = new Paint();
+        chart = view.findViewById(R.id.lineChart);
+        paint = new Paint();
         dataset = new LineSet();
-
-
 
 
         mLinearLayout = view.findViewById(R.id.equalizerContainer);
@@ -193,7 +219,7 @@ public class EqualizerFragment extends Fragment {
         final short upperEqualizerBandLevel = mEqualizer.getBandLevelRange()[1];
 
         for (short i = 0; i < numberOfFrequencyBands; i++) {
-            final short    equalizerBandIndex      = i;
+            final short equalizerBandIndex = i;
             final TextView frequencyHeaderTextView = new TextView(getContext());
             frequencyHeaderTextView.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
@@ -228,7 +254,7 @@ public class EqualizerFragment extends Fragment {
             );
             layoutParams.weight = 1;
 
-            SeekBar  seekBar  = new SeekBar(getContext());
+            SeekBar seekBar = new SeekBar(getContext());
             TextView textView = new TextView(getContext());
             switch (i) {
                 case 0:
@@ -271,7 +297,7 @@ public class EqualizerFragment extends Fragment {
                 points[i] = mEqualizer.getBandLevel(equalizerBandIndex) - lowerEqualizerBandLevel;
                 dataset.addPoint(frequencyHeaderTextView.getText().toString(), points[i]);
                 seekBar.setProgress(mEqualizer.getBandLevel(equalizerBandIndex) - lowerEqualizerBandLevel);
-                Settings.seekbarpos[i]       = mEqualizer.getBandLevel(equalizerBandIndex);
+                Settings.seekbarpos[i] = mEqualizer.getBandLevel(equalizerBandIndex);
                 Settings.isEqualizerReloaded = true;
             }
 
@@ -279,8 +305,8 @@ public class EqualizerFragment extends Fragment {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     mEqualizer.setBandLevel(equalizerBandIndex, (short) (progress + lowerEqualizerBandLevel));
-                    points[seekBar.getId()]                                  = mEqualizer.getBandLevel(equalizerBandIndex) - lowerEqualizerBandLevel;
-                    Settings.seekbarpos[seekBar.getId()]                     = (progress + lowerEqualizerBandLevel);
+                    points[seekBar.getId()] = mEqualizer.getBandLevel(equalizerBandIndex) - lowerEqualizerBandLevel;
+                    Settings.seekbarpos[seekBar.getId()] = (progress + lowerEqualizerBandLevel);
                     Settings.equalizerModel.getSeekbarpos()[seekBar.getId()] = (progress + lowerEqualizerBandLevel);
                     dataset.updateValues(points);
                     chart.notifyDataUpdate();
@@ -328,6 +354,9 @@ public class EqualizerFragment extends Fragment {
 
     }
 
+    /**
+     * Изменение "звука" эквалайзером
+     */
     public void equalizeSound() {
         ArrayList<String> equalizerPresetNames = new ArrayList<>();
         ArrayAdapter<String> equalizerPresetSpinnerAdapter = new ArrayAdapter<>(ctx,
@@ -360,8 +389,8 @@ public class EqualizerFragment extends Fragment {
 
                         for (short i = 0; i < numberOfFreqBands; i++) {
                             seekBarFinal[i].setProgress(mEqualizer.getBandLevel(i) - lowerEqualizerBandLevel);
-                            points[i]                                  = mEqualizer.getBandLevel(i) - lowerEqualizerBandLevel;
-                            Settings.seekbarpos[i]                     = mEqualizer.getBandLevel(i);
+                            points[i] = mEqualizer.getBandLevel(i) - lowerEqualizerBandLevel;
+                            Settings.seekbarpos[i] = mEqualizer.getBandLevel(i);
                             Settings.equalizerModel.getSeekbarpos()[i] = mEqualizer.getBandLevel(i);
                         }
                         dataset.updateValues(points);
@@ -383,9 +412,11 @@ public class EqualizerFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-
     }
 
+    /**
+     * Вызывается при уничтожении
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -396,6 +427,7 @@ public class EqualizerFragment extends Fragment {
         Settings.isEditing = false;
     }
 
+    //билдер для эквалайзера
     public static Builder newBuilder() {
         return new Builder();
     }

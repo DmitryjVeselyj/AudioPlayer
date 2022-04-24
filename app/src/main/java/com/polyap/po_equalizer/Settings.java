@@ -1,5 +1,8 @@
 package com.polyap.po_equalizer;
 
+/**
+ * Настройки эквалайзера
+ */
 public class Settings {
     public static boolean        isEqualizerEnabled   = true;
     public static boolean        isEqualizerReloaded  = true;

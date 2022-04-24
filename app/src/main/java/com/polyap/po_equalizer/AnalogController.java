@@ -9,14 +9,14 @@ import android.view.MotionEvent;
 import android.view.View;
 
 /**
- * Created by Harjot on 23-May-16.
+ * Крутилки такие для эквалайзера.
  */
 public class AnalogController extends View {
 
     float midx, midy;
     Paint textPaint, circlePaint, circlePaint2, linePaint;
     String angle;
-    float  currdeg, deg = 3, downdeg;
+    float currdeg, deg = 3, downdeg;
 
     int progressColor, lineColor;
 
@@ -24,14 +24,21 @@ public class AnalogController extends View {
 
     String label;
 
+    /**
+     * Интрфейс
+     */
     public interface onProgressChangedListener {
         void onProgressChanged(int progress);
     }
 
+    /**
+     * Сеттер
+     * @param listener Прослушиватель изменений
+     */
     public void setOnProgressChangedListener(onProgressChangedListener listener) {
         mListener = listener;
     }
-
+    //конструкторы
     public AnalogController(Context context) {
         super(context);
         init();
@@ -47,6 +54,9 @@ public class AnalogController extends View {
         init();
     }
 
+    /**
+     * Инициализация
+     */
     void init() {
         textPaint = new Paint();
         textPaint.setColor(Color.WHITE);
@@ -69,17 +79,21 @@ public class AnalogController extends View {
         label = "Label";
     }
 
+    /**
+     * Отрисовка "крутилок"
+     * @param canvas холст
+     */
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         midx = canvas.getWidth() / 2;
         midy = canvas.getHeight() / 2;
 
-        int   ang    = 0;
-        float x      = 0, y = 0;
-        int   radius = (int) (Math.min(midx, midy) * ((float) 14.5 / 16));
-        float deg2   = Math.max(3, deg);
-        float deg3   = Math.min(deg, 21);
+        int ang = 0;
+        float x = 0, y = 0;
+        int radius = (int) (Math.min(midx, midy) * ((float) 14.5 / 16));
+        float deg2 = Math.max(3, deg);
+        float deg3 = Math.min(deg, 21);
         for (int i = (int) (deg2); i < 22; i++) {
             float tmp = (float) i / 24;
             x = midx + (float) (radius * Math.sin(2 * Math.PI * (1.0 - tmp)));
@@ -95,10 +109,10 @@ public class AnalogController extends View {
         }
 
         float tmp2 = deg / 24;
-        float x1   = midx + (float) (radius * ((float) 2 / 5) * Math.sin(2 * Math.PI * (1.0 - tmp2)));
-        float y1   = midy + (float) (radius * ((float) 2 / 5) * Math.cos(2 * Math.PI * (1.0 - tmp2)));
-        float x2   = midx + (float) (radius * ((float) 3 / 5) * Math.sin(2 * Math.PI * (1.0 - tmp2)));
-        float y2   = midy + (float) (radius * ((float) 3 / 5) * Math.cos(2 * Math.PI * (1.0 - tmp2)));
+        float x1 = midx + (float) (radius * ((float) 2 / 5) * Math.sin(2 * Math.PI * (1.0 - tmp2)));
+        float y1 = midy + (float) (radius * ((float) 2 / 5) * Math.cos(2 * Math.PI * (1.0 - tmp2)));
+        float x2 = midx + (float) (radius * ((float) 3 / 5) * Math.sin(2 * Math.PI * (1.0 - tmp2)));
+        float y2 = midy + (float) (radius * ((float) 3 / 5) * Math.cos(2 * Math.PI * (1.0 - tmp2)));
 
         circlePaint.setColor(Color.parseColor("#222222"));
         canvas.drawCircle(midx, midy, radius * ((float) 13 / 15), circlePaint);
@@ -109,6 +123,12 @@ public class AnalogController extends View {
 
     }
 
+    /**
+     * Обработка нажатий на крутилку
+     *
+     * @param e моушн ивент
+     * @return
+     */
     @Override
     public boolean onTouchEvent(MotionEvent e) {
 
@@ -165,6 +185,7 @@ public class AnalogController extends View {
         return e.getAction() == MotionEvent.ACTION_UP || super.onTouchEvent(e);
     }
 
+    //геттеры и сеттера
     public int getProgress() {
         return (int) (deg - 2);
     }
