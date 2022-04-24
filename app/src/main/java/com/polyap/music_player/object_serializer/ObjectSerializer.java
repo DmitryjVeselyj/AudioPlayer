@@ -1,4 +1,4 @@
-package com.polyap.music_player;
+package com.polyap.music_player.object_serializer;
 
 
 import java.io.ByteArrayInputStream;
@@ -8,8 +8,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+/**
+ * Класс, отвечающий за сериализацию объектов
+ */
 public class ObjectSerializer {
 
+    /**
+     * Сериализация объекта
+     * @param obj объект
+     * @return строка
+     * @throws IOException
+     */
     public static String serialize(Serializable obj) throws IOException {
         if (obj == null) return "";
         ByteArrayOutputStream serialObj = new ByteArrayOutputStream();
@@ -19,6 +28,13 @@ public class ObjectSerializer {
         return encodeBytes(serialObj.toByteArray());
     }
 
+    /**
+     * Десериализация объекта
+     * @param str строка
+     * @return объект
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public static Object deserialize(String str) throws IOException, ClassNotFoundException {
         if (str == null || str.length() == 0) return null;
         ByteArrayInputStream serialObj = new ByteArrayInputStream(decodeBytes(str));
@@ -26,6 +42,11 @@ public class ObjectSerializer {
         return objStream.readObject();
     }
 
+    /**
+     * Кодирование байтов
+     * @param bytes массив байтов
+     * @return строка
+     */
     public static String encodeBytes(byte[] bytes) {
         StringBuffer strBuf = new StringBuffer();
 
@@ -37,6 +58,11 @@ public class ObjectSerializer {
         return strBuf.toString();
     }
 
+    /**
+     * Декодирование байтов
+     * @param str стркоа
+     * @return массив байтов
+     */
     public static byte[] decodeBytes(String str) {
         byte[] bytes = new byte[str.length() / 2];
         for (int i = 0; i < str.length(); i+=2) {

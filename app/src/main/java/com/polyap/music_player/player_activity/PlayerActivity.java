@@ -1,19 +1,21 @@
-package com.polyap.music_player;
+package com.polyap.music_player.player_activity;
 
 import static android.graphics.Color.green;
-import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
-import static com.polyap.music_player.MainActivity.currentMusicPlaying;
-import static com.polyap.music_player.MainActivity.isEqualize;
-import static com.polyap.music_player.MainActivity.isRepeat;
-import static com.polyap.music_player.MainActivity.isShuffle;
-import static com.polyap.music_player.MainActivity.isVisualize;
-import static com.polyap.music_player.MainActivity.lastMusicPosition;
-import static com.polyap.music_player.MainActivity.lastMusicQueue;
-import static com.polyap.music_player.MainActivity.musicServiceMain;
-import static com.polyap.music_player.MainActivity.oldMusicPlayed;
-import static com.polyap.music_player.MusicAdapter.musicFilesList;
+import static com.polyap.music_player.album_details.AlbumDetailsAdapter.albumFiles;
+import static com.polyap.music_player.main_activity.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.main_activity.MainActivity.isEqualize;
+import static com.polyap.music_player.main_activity.MainActivity.isRepeat;
+import static com.polyap.music_player.main_activity.MainActivity.isShuffle;
+import static com.polyap.music_player.main_activity.MainActivity.isVisualize;
+import static com.polyap.music_player.main_activity.MainActivity.lastMusicPosition;
+import static com.polyap.music_player.main_activity.MainActivity.lastMusicQueue;
+import static com.polyap.music_player.main_activity.MainActivity.musicServiceMain;
+import static com.polyap.music_player.main_activity.MainActivity.oldMusicPlayed;
+import static com.polyap.music_player.bottom_player.NowPlayingFragmentBottom.updateCurrentSong;
+import static com.polyap.music_player.main_activity.MainActivity.musicServiceMain;
+import static com.polyap.music_player.song_fragment.MusicAdapter.musicFilesList;
 
-import static com.polyap.music_player.NowPlayingFragmentBottom.updateCurrentSong;
+
 import static com.polyap.po_equalizer.DialogEqualizerFragment.mEqualizer;
 ;
 
@@ -46,7 +48,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -62,6 +63,13 @@ import com.gauravk.audiovisualizer.base.BaseVisualizer;
 import com.gauravk.audiovisualizer.visualizer.WaveVisualizer;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.masoudss.lib.WaveformSeekBar;
+import com.polyap.music_player.R;
+import com.polyap.music_player.album_details.AlbumDetails;
+import com.polyap.music_player.interfaces.ActionPlaying;
+import com.polyap.music_player.music_service.MusicService;
+import com.polyap.music_player.object_serializer.ObjectSerializer;
+import com.polyap.music_player.song_fragment.MusicFiles;
+import com.polyap.music_player.song_fragment.SongFragment;
 import com.polyap.po_equalizer.DialogEqualizerFragment;
 import com.polyap.po_equalizer.Settings;
 import com.skydoves.powermenu.MenuAnimation;
@@ -74,6 +82,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 
+/**
+ * Активити, отвечающая за сам плеер
+ */
 public class PlayerActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener, ServiceConnection, MediaPlayer.OnCompletionListener, ActionPlaying {
     TextView songName, artistName, durationPlayed, durationTotal;
     ImageView albumArt, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn, menuBtn;
@@ -92,25 +103,27 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     //static MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
     private int oldAudioSessionId = -2;
-    final static String FORWARD = "forward";
-    final static String BACK = "back";
-    final static String NOTHING ="nothing";
+    public final static String FORWARD = "forward";
+    public final static String BACK = "back";
+    final static String NOTHING = "nothing";
     public static String direction = FORWARD;
-    WaveformSeekBar waveformSeekBar;
     ColorDrawable lastColor = new ColorDrawable(Color.BLACK);
     boolean shouldClick = false;
-    static DialogEqualizerFragment fragment;
+    public static DialogEqualizerFragment fragment;
     static ArrayList<MusicFiles> tmp;
     static MusicService musicService = musicServiceMain;
     public static String QUEUE_MUSIC = "QueueMusic";
     public static String MUSIC_LIST = "MUSIC_LIST";
-
+    /**
+     * метод AppCompatActivity, вызывается при создании активити
+     * @param savedInstanceState сохранённое состояние
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
         ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null)
+        if (actionBar != null)
             actionBar.hide();
         statusBartoTransparent();
 
@@ -123,36 +136,40 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void run() {
                 saveTracks();
-
             }
         };
         Thread thread = new Thread(runnable);
         thread.start();
 
     }
-    void initService(){
+
+    /**
+     * инициализация сервиса
+     */
+    void initService() {
         musicService = musicServiceMain;
-        if(musicService == null) {
+        if (musicService == null) {
             Intent intent = new Intent(this, MusicService.class);
             intent.putExtra("servicePosition", position);
             startService(intent);
             isPlaying = true;
-        }
-        else{
+        } else {
             NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(12312);
 
-            if(musicService.mediaPlayer != null && sender != null && sender.equals("BottomPlayer")) {
+            if (musicService.mediaPlayer != null && sender != null && sender.equals("BottomPlayer")) {
 
                 designActivity();
-            }
-            else{
-               // isPlaying = true;
+            } else {
+                // isPlaying = true;
                 getIntentMethod(position);
             }
         }
     }
-    public void statusBartoTransparent(){
+    /**
+     * делаем статус-бар безграничным
+     */
+    public void statusBartoTransparent() {
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
             setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
         }
@@ -165,8 +182,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
     }
-    void addPaddingTop(RelativeLayout layout){
 
+    /**
+     * Добавляем отступ сверху на высоту статус-бара
+     * @param layout файл разметки(объект ViewGroup)
+     */
+    void addPaddingTop(RelativeLayout layout) {
         int result = 0;
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
@@ -175,12 +196,16 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         layout.setPadding(0, result, 0, 0);
         resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-        if(resourceId > 0){
+        if (resourceId > 0) {
             result = getResources().getDimensionPixelSize(resourceId);
         }
 
 
     }
+
+    /**
+     * метод, вызывающийся при нажатии кнопки"назад"
+     */
     @Override
     public void onBackPressed() {
         visualizer.release();
@@ -188,97 +213,117 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         overridePendingTransition(R.anim.close_top_to_bottom, R.anim.close_bottom_to_top);
     }
 
-    private String formattedTime(int currentPosition){
+    /**
+     * Преобразование времени в читабельный формат
+     * @param currentPosition текущая позиция
+     * @return строка с форматированным временем
+     */
+    private String formattedTime(int currentPosition) {
         String totalout = "";
         String totalnew = "";
         String seconds = String.valueOf(currentPosition % 60);
         String minutes = String.valueOf(currentPosition / 60);
         totalout = minutes + ":" + seconds;
         totalnew = minutes + ":" + "0" + seconds;
-        if(seconds.length() == 1){
+        if (seconds.length() == 1) {
             return totalnew;
-        }
-        else{
+        } else {
             return totalout;
         }
     }
-    private void saveTracks(){
+
+    /**
+     * сохранение треков
+     */
+    private void saveTracks() {
         SharedPreferences preferences = getSharedPreferences(QUEUE_MUSIC, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         try {
             editor.putString(MUSIC_LIST, ObjectSerializer.serialize(lastMusicQueue));
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         editor.commit();
     }
-    private void loadTracks(){
-        SharedPreferences preferences = getSharedPreferences(QUEUE_MUSIC, Context.MODE_PRIVATE);
-        try {
-            lastMusicQueue = (ArrayList<MusicFiles>) ObjectSerializer.deserialize(preferences.getString(MUSIC_LIST, ObjectSerializer.serialize(new ArrayList<MusicFiles>())));
-        }catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
+
+
+    /**
+     * Запускается при уничтожении активити
+     */
     @Override
     protected void onDestroy() {
         if (visualizer != null)
             visualizer.setEnabled(false);
-            visualizer.release();
+        visualizer.release();
         musicService.setCallBack(null);
 
         super.onDestroy();
     }
-    public static int getPosition(ArrayList<MusicFiles> tracks, MusicFiles currentFile){
-        for(int i = 0 ; i < tracks.size(); i++){
-            if(tracks.get(i).getId().equals(currentFile.getId())){
+
+
+    /**
+     * Получение позиции нужного трека в списке
+     * @param tracks Список треков
+     * @param currentFile нужный трек
+     * @return позиция
+     */
+    public static int getPosition(ArrayList<MusicFiles> tracks, MusicFiles currentFile) {
+        for (int i = 0; i < tracks.size(); i++) {
+            if (tracks.get(i).getId().equals(currentFile.getId())) {
                 return i;
             }
         }
         return -1;
     }
 
-    public static void updateSongList(){
-            if (SongFragment.recyclerViewSong != null) {//nfstr
+    /**
+     * обновление треков
+     */
+    public static void updateSongList() {
+        if (SongFragment.recyclerViewSong != null) {//nfstr
 
-                RecyclerView.Adapter songAdapter = SongFragment.recyclerViewSong.getAdapter();
-                if (songAdapter != null) {
-                    if(oldMusicPlayed != null) {
-                        songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, oldMusicPlayed));
-                    }
-                    if(currentMusicPlaying != null) {
-                        songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, currentMusicPlaying));
-                    }
+            RecyclerView.Adapter songAdapter = SongFragment.recyclerViewSong.getAdapter();
+            if (songAdapter != null) {
+                if (oldMusicPlayed != null) {
+                    songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, oldMusicPlayed));
+                }
+                if (currentMusicPlaying != null) {
+                    songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, currentMusicPlaying));
                 }
             }
+        }
 
-            if(AlbumDetails.recyclerView != null){
-                RecyclerView.Adapter albumDetailsAdapter = AlbumDetails.recyclerView.getAdapter();
-                if(albumDetailsAdapter != null){
-                    if(oldMusicPlayed != null)
-                        albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumFiles, oldMusicPlayed));
-                    if(currentMusicPlaying != null)
-                        albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumFiles, currentMusicPlaying));
-                }
+        if (AlbumDetails.recyclerView != null) {
+            RecyclerView.Adapter albumDetailsAdapter = AlbumDetails.recyclerView.getAdapter();
+            if (albumDetailsAdapter != null) {
+                if (oldMusicPlayed != null)
+                    albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumFiles, oldMusicPlayed));
+                if (currentMusicPlaying != null)
+                    albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumFiles, currentMusicPlaying));
             }
-            isChangedMusic = false;
+        }
+        isChangedMusic = false;
     }
 
-    private int getNewPosition(String direction){
-        if(isRepeat)
+    /**
+     * Получение позиции нового трека
+     * @param direction направление
+     * @return позиция нового трека
+     */
+    private int getNewPosition(String direction) {
+        if (isRepeat)
             return position;
-        if(direction.equals(FORWARD)){
+        if (direction.equals(FORWARD)) {
             return (position + 1) % lastMusicQueue.size();
-        }
-        else{
-            return (position - 1) < 0 ? (lastMusicQueue.size()) - 1: position - 1;
+        } else {
+            return (position - 1) < 0 ? (lastMusicQueue.size()) - 1 : position - 1;
         }
     }
 
-    private void mainListeners(){
+    /**
+     * основные ребята, которые мониторят изменения
+     * */
+    private void mainListeners() {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -294,20 +339,19 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             public void onStopTrackingTouch(SeekBar seekBar) {
                 seekBar.setProgress(seekBar.getProgress());
                 musicService.seekTo((int) (seekBar.getProgress() * 1000));
-                if(musicService.isPlaying()) {
+                if (musicService.isPlaying()) {
                     musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
-                }
-                else{
+                } else {
                     musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
                 }
             }
         });
 
 
-       PlayerActivity.this.runOnUiThread(new Runnable() {
+        PlayerActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(musicService != null){
+                if (musicService != null) {
                     int currentPosition = musicService.getCurrentPosition() / 1000;
                     seekBar.setProgress(currentPosition);
                     durationPlayed.setText(formattedTime(currentPosition));
@@ -328,107 +372,119 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
 
     }
-    void justShuffle(){
+
+    /**
+     * перемешивание треков
+     */
+    void justShuffle() {
         MusicFiles song = lastMusicQueue.get(position);
         lastMusicQueue.remove(song);
         Collections.shuffle(lastMusicQueue);
         lastMusicQueue.add(position, song);
         lastMusicPosition = position;
     }
-    private void checkingSender(){
+
+    /**
+     * Проверяем, откуда именно запустилась активити
+     */
+    private void checkingSender() {
         sender = getIntent().getStringExtra("sender");
-        if(sender != null && sender.equals("AlbumDetails")){
+        if (sender != null && sender.equals("AlbumDetails")) {
             lastMusicQueue = (ArrayList<MusicFiles>) albumFiles.clone();
             tmp = albumFiles;
             this.position = getIntent().getIntExtra("position", -1);
-            if(isShuffle)
+            if (isShuffle)
                 justShuffle();
-        }
-        else if(sender != null && sender.equals("MainActivity")){
-            lastMusicQueue = (ArrayList<MusicFiles>) ((ArrayList<MusicFiles>)musicFilesList).clone();
+        } else if (sender != null && sender.equals("MainActivity")) {
+            lastMusicQueue = (ArrayList<MusicFiles>) ((ArrayList<MusicFiles>) musicFilesList).clone();
             tmp = (ArrayList<MusicFiles>) musicFilesList;
             this.position = getIntent().getIntExtra("position", -1);
-            if(isShuffle)
+            if (isShuffle)
                 justShuffle();
 
-        }
-        else if(sender != null && sender.equals("BottomPlayer")){
+        } else if (sender != null && sender.equals("BottomPlayer")) {
             //tmp = (ArrayList<MusicFiles>) lastMusicQueue; используем lstMusic
-            this.position= lastMusicPosition;
+            this.position = lastMusicPosition;
         }
     }
+
+
+    /**
+     * Запуск проигрывания музыки
+     * @param position позиция трека
+     */
     private void getIntentMethod(int position) {
         this.position = position;
         musicService.setPosition(position);
-        if(lastMusicQueue != null){
+        if (lastMusicQueue != null) {
             uri = Uri.parse(lastMusicQueue.get(position).getPath());
             loadImages(position);
         }
-            if (musicService.mediaPlayer != null) {
-                musicService.stop();
-                musicService.reset();
-                try {
-                    musicService.setDataSource(uri);
-                    musicService.prepare();
+        if (musicService.mediaPlayer != null) {
+            musicService.stop();
+            musicService.reset();
+            try {
+                musicService.setDataSource(uri);
+                musicService.prepare();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-                musicService.createMediaPlayer(position);
-                musicService.OnCompleted();
-                //mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
-            }
-            if (isPlaying ) {
-                playpauseBtn.setImageResource(R.drawable.ic_pause);
-                albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
-
-                musicService.start();
-                musicService.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
-            } else {
-                playpauseBtn.setImageResource(R.drawable.ic_play);
-                musicService.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            seekBar.setProgress(0);
-            seekBar.setMax(musicService.getDuration() / 1000);
+        } else {
+            musicService.createMediaPlayer(position);
+            musicService.OnCompleted();
+            //mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
+        }
+        if (isPlaying) {
+            playpauseBtn.setImageResource(R.drawable.ic_pause);
+            albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
+
+            musicService.start();
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
+        } else {
+            playpauseBtn.setImageResource(R.drawable.ic_play);
+            musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
+        }
+
+        seekBar.setProgress(0);
+        seekBar.setMax(musicService.getDuration() / 1000);
 
 
-            int audioSessionId = musicService.getAudioSessionId();
-            if (audioSessionId != -1 && oldAudioSessionId != audioSessionId) {
-                visualizer.setAudioSessionId(audioSessionId);
-                oldAudioSessionId = audioSessionId;
+        int audioSessionId = musicService.getAudioSessionId();
+        if (audioSessionId != -1 && oldAudioSessionId != audioSessionId) {
+            visualizer.setAudioSessionId(audioSessionId);
+            oldAudioSessionId = audioSessionId;
 
 
-            }
-            oldMusicPlayed = currentMusicPlaying;
-            currentMusicPlaying = lastMusicQueue.get(position);
-            if (currentMusicPlaying.equals(oldMusicPlayed) || oldMusicPlayed == null)
-                isChangedMusic = true;
-            else
-                isChangedMusic = true;
-            updateSongList();
-            if (fragment != null) {
-                fragment = DialogEqualizerFragment.newBuilder()
-                        .setAudioSessionId(audioSessionId)
-                        .themeColor(ContextCompat.getColor(this, R.color.black))
-                        .textColor(ContextCompat.getColor(this, R.color.white))
-                        .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
-                        .darkColor(ContextCompat.getColor(this, R.color.purple_200))
-                        .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
-                        .build();
-            } else {
-                fragment = DialogEqualizerFragment.newBuilder()
-                        .setAudioSessionId(audioSessionId)
-                        .themeColor(ContextCompat.getColor(this, R.color.black))
-                        .textColor(ContextCompat.getColor(this, R.color.white))
-                        .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
-                        .darkColor(ContextCompat.getColor(this, R.color.purple_200))
-                        .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
-                        .build();
-                equalizerUpdate();
-            }
+        }
+        oldMusicPlayed = currentMusicPlaying;
+        currentMusicPlaying = lastMusicQueue.get(position);
+        if (currentMusicPlaying.equals(oldMusicPlayed) || oldMusicPlayed == null)
+            isChangedMusic = true;
+        else
+            isChangedMusic = true;
+        updateSongList();
+        if (fragment != null) {
+            fragment = DialogEqualizerFragment.newBuilder()
+                    .setAudioSessionId(audioSessionId)
+                    .themeColor(ContextCompat.getColor(this, R.color.black))
+                    .textColor(ContextCompat.getColor(this, R.color.white))
+                    .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
+                    .darkColor(ContextCompat.getColor(this, R.color.purple_200))
+                    .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
+                    .build();
+        } else {
+            fragment = DialogEqualizerFragment.newBuilder()
+                    .setAudioSessionId(audioSessionId)
+                    .themeColor(ContextCompat.getColor(this, R.color.black))
+                    .textColor(ContextCompat.getColor(this, R.color.white))
+                    .accentAlpha(ContextCompat.getColor(this, R.color.purple_200))
+                    .darkColor(ContextCompat.getColor(this, R.color.purple_200))
+                    .setAccentColor(ContextCompat.getColor(this, R.color.purple_200))
+                    .build();
+            equalizerUpdate();
+        }
 
         //musicService.OnCompleted();
         //musicService.mediaPlayer.setOnCompletionListener(this);
@@ -436,19 +492,26 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         musicService.saveLastTrack(position);
 
     }
-    private void equalizerUpdate(){
+
+    /**
+     * Если вы раньше видели это, то это определённо значит, что не видели
+     */
+    private void equalizerUpdate() {
         FragmentManager fm = getSupportFragmentManager();//дичайший костыль. Еле держится, но работает
         fm.beginTransaction().hide(fragment).commit();
         fragment.show(getSupportFragmentManager(), "eq");
 
         fm.beginTransaction().remove(fragment).commit();
-        if(Settings.isEqualizerEnabled){
+        if (Settings.isEqualizerEnabled) {
             equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
-        }
-        else{
+        } else {
             equalizerBtn.setImageResource(R.drawable.ic_equalizer);
         }
     }
+
+    /**
+     * Инициализация
+     */
     private void InitViews() {
         songName = findViewById(R.id.song_name);
         songName.setSelected(true);
@@ -493,22 +556,27 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
         seekBar = findViewById(R.id.seekBar_player);
         seekBar.setProgress(0);
-        layoutTop= findViewById(R.id.layout_top_btn);//пока не нужно, но может пригодиться когда-то
+        layoutTop = findViewById(R.id.layout_top_btn);//пока не нужно, но может пригодиться когда-то
         addPaddingTop(playerLayout);
 
 
     }
-    private void changeVisualizerColor(BaseVisualizer visualizer){
-        Bitmap bitmap = ((BitmapDrawable)albumArt.getDrawable()).getBitmap();
+
+    /**
+     * Изменение цвета визуализатора
+     * @param visualizer визуализатор
+     */
+    private void changeVisualizerColor(BaseVisualizer visualizer) {
+        Bitmap bitmap = ((BitmapDrawable) albumArt.getDrawable()).getBitmap();
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
             @Override
             public void onGenerated(@Nullable Palette palette) {
                 Palette.Swatch swatch = palette.getDominantSwatch();
-                if(swatch != null){
+                if (swatch != null) {
                     float[] hsl = swatch.getHsl();
-                    hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
-                    hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
-                    hsl[2] = hsl[2] > (float) 0.90? (float)0.3:hsl[2];//поменять когда-то
+                    hsl[1] = hsl[1] > (float) 0.5 ? (float) 0.31 : hsl[1];
+                    hsl[2] = hsl[2] < (float) 0.5 ? (float) 0.34 : hsl[2];
+                    hsl[2] = hsl[2] > (float) 0.90 ? (float) 0.3 : hsl[2];//поменять когда-то
                     int color = ColorUtils.HSLToColor(hsl);
                     visualizer.setColor(color);
 
@@ -526,6 +594,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
     }
+
+    /**
+     * @param activity активити
+     * @param bits битс
+     * @param on он
+     */
     public static void setWindowFlag(Activity activity, final int bits, boolean on) {
         Window win = activity.getWindow();
         WindowManager.LayoutParams winParams = win.getAttributes();
@@ -537,33 +611,37 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         win.setAttributes(winParams);
     }
 
-    private void loadImages(int position){
+    /**
+     * Загрузка изображения
+     * @param position позиция
+     */
+    private void loadImages(int position) {
 
         final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
         Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(lastMusicQueue.get(position).getAlbumId()));
         Animation animationFirst = null;
         Animation animationSecond = null;
-        if(direction.equals(FORWARD)) {
+        if (direction.equals(FORWARD)) {
             animationFirst = AnimationUtils.loadAnimation(this, R.anim.slide_left);
             animationSecond = AnimationUtils.loadAnimation(this, R.anim.slide_left_sec);
-        }
-        else if(direction.equals(BACK)) {
+        } else if (direction.equals(BACK)) {
             animationFirst = AnimationUtils.loadAnimation(this, R.anim.slide_right);
             animationSecond = AnimationUtils.loadAnimation(this, R.anim.slide_right_sec);
         }
-        if(animationFirst != null) {
+        if (animationFirst != null) {
             Animation finalAnimationSecond = animationSecond;
             animationFirst.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
                 }
+
                 @Override
                 public void onAnimationEnd(Animation animation) {
                     albumArt.startAnimation(finalAnimationSecond);
-                    if(imageUri != null){
+                    if (imageUri != null) {
                         albumArt.setImageURI(imageUri);
                     }
-                    if(albumArt.getDrawable() == null) {
+                    if (albumArt.getDrawable() == null) {
                         albumArt.setImageResource(R.drawable.msc_back1);
                     }
                     changeVisualizerColor(visualizer);
@@ -581,66 +659,63 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
 
 
-        if(isRepeat){
+        if (isRepeat) {
             repeatBtn.setImageResource(R.drawable.ic_repeat7);
-        }else{
+        } else {
             repeatBtn.setImageResource(R.drawable.ic_repeat7_of);
         }
 
-        if(isShuffle){
-            shuffleBtn.setImageResource(R.drawable.ic_shuffle10);;
-        }else{
+        if (isShuffle) {
+            shuffleBtn.setImageResource(R.drawable.ic_shuffle10);
+            ;
+        } else {
             shuffleBtn.setImageResource(R.drawable.ic_shuffle10_of);
         }
 
-        if(isVisualize){
+        if (isVisualize) {
             visualizer.show();
             visualizerBtn.setImageResource(R.drawable.ic_visualizer_on);
 
-        }
-        else{
+        } else {
             visualizer.hide();
             visualizerBtn.setImageResource(R.drawable.ic_visualizer);
         }
 
-        if(isEqualize){
+        if (isEqualize) {
             equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
-        }
-        else{
+        } else {
             equalizerBtn.setImageResource(R.drawable.ic_equalizer);
         }
 
 
-
-
-
-
-
     }
 
+    /**
+     * Метод, в котором обрабатываются нажатия всего и вся
+     * @param view объект ViewGroup
+     */
     @Override
     public void onClick(View view) {
 
-        switch (view.getId()){
+        switch (view.getId()) {
 
             case R.id.skip_next:
                 direction = FORWARD;
                 getIntentMethod(getNewPosition(direction));
                 break;
             case R.id.play_pause:
-                if(musicService.isPlaying()){
+                if (musicService.isPlaying()) {
                     musicService.pause();
                     isPlaying = false;
                     playpauseBtn.setImageResource(R.drawable.ic_play);
                     albumArt.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300);
-                    musicService.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
-                }
-                else{
+                    musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
+                } else {
                     musicService.start();
                     isPlaying = true;
                     playpauseBtn.setImageResource(R.drawable.ic_pause);
                     albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
-                    musicService.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+                    musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
 
                 }
                 updateCurrentSong();
@@ -653,13 +728,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 onBackPressed();
                 break;
             case R.id.shuffle:
-                if(isShuffle){
+                if (isShuffle) {
                     isShuffle = false;
                     position = tmp.indexOf(lastMusicQueue.get(position));
                     lastMusicQueue = (ArrayList<MusicFiles>) tmp.clone();
                     lastMusicPosition = position;
                     shuffleBtn.setImageResource(R.drawable.ic_shuffle10_of);
-                }else{
+                } else {
                     isShuffle = true;
                     MusicFiles song = lastMusicQueue.get(position);
                     lastMusicQueue.remove(song);
@@ -670,10 +745,10 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 }
                 break;
             case R.id.repeat:
-                if(isRepeat){
+                if (isRepeat) {
                     isRepeat = false;
                     repeatBtn.setImageResource(R.drawable.ic_repeat7_of);
-                }else{
+                } else {
                     isRepeat = true;
                     repeatBtn.setImageResource(R.drawable.ic_repeat7);
                 }
@@ -695,13 +770,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 powerMenu.showAsDropDown(view);
                 break;
             case R.id.equalizer_btn:
-                if(Settings.isEqualizerEnabled){
+                if (Settings.isEqualizerEnabled) {
                     Settings.isEqualizerEnabled = false;
                     equalizerBtn.setImageResource(R.drawable.ic_equalizer);
                     mEqualizer.setEnabled(false);
                     isEqualize = false;
-                }
-                else{
+                } else {
                     Settings.isEqualizerEnabled = true;
                     mEqualizer.setEnabled(true);
                     equalizerBtn.setImageResource(R.drawable.ic_equalizer_on);
@@ -709,12 +783,11 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 }
                 break;
             case R.id.visualizer_btn:
-                if(isVisualize){
+                if (isVisualize) {
                     visualizer.hide();
                     isVisualize = false;
                     visualizerBtn.setImageResource(R.drawable.ic_visualizer);
-                }
-                else{
+                } else {
                     visualizer.show();
                     isVisualize = true;
                     visualizerBtn.setImageResource(R.drawable.ic_visualizer_on);
@@ -728,38 +801,42 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     private OnMenuItemClickListener<PowerMenuItem> onMenuItemClickListener = new OnMenuItemClickListener<PowerMenuItem>() {
         @Override
         public void onItemClick(int position, PowerMenuItem item) {
-            if(position == 0){
+            if (position == 0) {
                 isVisualize = true;
                 visualizer.show();
                 visualizerBtn.setImageResource(R.drawable.ic_visualizer_on);
 
-            }
-            else if(position == 1){
+            } else if (position == 1) {
                 isVisualize = false;
                 visualizer.hide();
                 visualizerBtn.setImageResource(R.drawable.ic_visualizer);
-            }
-            else{
+            } else {
                 fragment.show(getSupportFragmentManager(), "eq");
-                isEqualize =true;
+                isEqualize = true;
             }
         }
     };
 
+    /**
+     * Метод, в котором обрабатываются прикосновения всего и вся
+     * @param view объект ViewGroup
+     * @param motionEvent моушн Событие
+     */
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        float xp = motionEvent.getX();;
+        float xp = motionEvent.getX();
+        ;
 
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.skip_next:
-                switch (motionEvent.getAction()){
+                switch (motionEvent.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         shouldClick = true;
                         nextBtn.animate().scaleX(0.8f).scaleY(0.8f).setDuration(50);
                         break;
                     case MotionEvent.ACTION_UP:
                         nextBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
-                        if(shouldClick)
+                        if (shouldClick)
                             view.performClick();
                         break;
                     case MotionEvent.ACTION_MOVE:
@@ -770,14 +847,14 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 }
                 return true;
             case R.id.skip_prev:
-                switch (motionEvent.getAction()){
+                switch (motionEvent.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         shouldClick = true;
                         prevBtn.animate().scaleX(0.8f).scaleY(0.8f).setDuration(50);
                         break;
                     case MotionEvent.ACTION_UP:
                         prevBtn.animate().scaleX(1.1f).scaleY(1.1f).setDuration(50);
-                        if(shouldClick)
+                        if (shouldClick)
                             view.performClick();
                         break;
                     case MotionEvent.ACTION_MOVE:
@@ -791,6 +868,10 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         return true;
     }
 
+    /**
+     * @param componentName имя компонента
+     * @param iBinder объект, реализующий интерфейс интерфейса IBinder
+     */
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
         MusicService.MyBinder myBinder = (MusicService.MyBinder) iBinder;
@@ -798,16 +879,20 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         musicService.setCallBack(this);
         //getIntentMethod(position);
     }
-    private void designActivity(){
+
+    /**
+     * "заполнение" активити данными
+     */
+    private void designActivity() {
         musicService.setPosition(position);
-        if(lastMusicQueue != null){
+        if (lastMusicQueue != null) {
             uri = Uri.parse(lastMusicQueue.get(position).getPath());
             loadImages(position);
         }
         if (isPlaying) {
             playpauseBtn.setImageResource(R.drawable.ic_pause);
             albumArt.animate().scaleX(1.1f).scaleY(1.1f).setDuration(300);
-            musicService.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
         } else {
             playpauseBtn.setImageResource(R.drawable.ic_play);
             musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
@@ -823,6 +908,10 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         seekBar.setMax(musicService.getDuration() / 1000);
 
     }
+
+    /**
+     * Вызывается, когда мы возращается к активити
+     */
     @Override
     protected void onResume() {
 
@@ -831,27 +920,29 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         super.onResume();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-       // unbindService(this);
-    }
 
+    /**
+     * Вызывается, когда сервис отключается
+     * @param componentName имя компонента
+     */
     @Override
     public void onServiceDisconnected(ComponentName componentName) {
         musicService = null;
     }
 
+    /**
+     * Обработка моментов, когда трек заканчивается
+     * @param mediaPlayer медиаплеер
+     */
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        if(isRepeat) {
+        if (isRepeat) {
             direction = NOTHING;
             //musicService.playMedia(position);
             musicService.mediaPlayer.seekTo(0);
             musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
             getIntentMethod(position);
-        }
-        else {
+        } else {
             direction = FORWARD;
             //musicService.playMedia(getNewPosition(direction));
             musicService.mediaPlayer.seekTo(0);
@@ -859,19 +950,21 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             getIntentMethod(getNewPosition(direction));
         }
     }
+    //Дальше будет реализация интерфейса
 
-
-
+    /**
+     * Без комментариев хд
+     */
     @Override
+
     public void btn_play_pauseClicked() {
-        if(musicService.isPlaying()){
+        if (musicService.isPlaying()) {
             musicService.pause();
             isPlaying = false;
             playpauseBtn.setImageResource(R.drawable.ic_play);
             musicService.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PAUSED);
             albumArt.animate().scaleX(1.05f).scaleY(1.05f).setDuration(300);
-        }
-        else{
+        } else {
             musicService.start();
             isPlaying = true;
             playpauseBtn.setImageResource(R.drawable.ic_pause);
@@ -880,34 +973,42 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         updateCurrentSong();
     }
-
+    /**
+     * Без комментариев
+     */
     @Override
     public void btn_nextClicked() {
         direction = FORWARD;
         musicService.mediaPlayer.seekTo(0);
-        if(isPlaying)
+        if (isPlaying)
             musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
         else
             musicService.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
         getIntentMethod(getNewPosition(FORWARD));
     }
-
+    /**
+     * Без комментариев
+     */
     @Override
+
     public void btn_prevClicked() {
         direction = BACK;
         musicService.mediaPlayer.seekTo(0);
-        if(isPlaying)
-            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+        if (isPlaying)
+            musicService.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);//1f state playing
         else
-            musicService.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+            musicService.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);//of
         getIntentMethod(getNewPosition(direction));
     }
 
+    /**
+     * Без комментариев
+     */
     @Override
     public void btn_dismiss() {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(12312);
-        if(musicService != null){
+        if (musicService != null) {
             musicService.pause();
             isPlaying = false;
             playpauseBtn.setImageResource(R.drawable.ic_play);

@@ -1,16 +1,12 @@
-package com.polyap.music_player;
+package com.polyap.music_player.album_details;
 
 
-import static com.polyap.music_player.AlbumFragment.albums;
-import static com.polyap.music_player.MainActivity.SHOW_MINI_PLAYER;
-import static com.polyap.music_player.MainActivity.currentMusicPlaying;
-import static com.polyap.music_player.MainActivity.lastMusicPosition;
-import static com.polyap.music_player.MainActivity.lastMusicQueue;
-import static com.polyap.music_player.MainActivity.musicFiles;
-import static com.polyap.music_player.MainActivity.musicServiceMain;
-import static com.polyap.music_player.MainActivity.oldMusicPlayed;
-import static com.polyap.music_player.PlayerActivity.isPlaying;
-import static com.polyap.music_player.PlayerActivity.musicService;
+import static com.polyap.music_player.main_activity.MainActivity.SHOW_MINI_PLAYER;
+import static com.polyap.music_player.main_activity.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.main_activity.MainActivity.musicFiles;
+import static com.polyap.music_player.main_activity.MainActivity.musicServiceMain;
+import static com.polyap.music_player.player_activity.PlayerActivity.isPlaying;
+import static com.polyap.music_player.album_fragment.AlbumFragment.albums;
 
 import android.app.Activity;
 import android.app.NotificationManager;
@@ -21,7 +17,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,8 +28,12 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.snackbar.Snackbar;
+import com.polyap.music_player.player_activity.PlayerActivity;
+import com.polyap.music_player.R;
+import com.polyap.music_player.album_fragment.AlbumFragment;
+import com.polyap.music_player.song_fragment.MusicFiles;
+import com.polyap.music_player.song_fragment.SongFragment;
 import com.skydoves.powermenu.MenuAnimation;
 import com.skydoves.powermenu.OnMenuItemClickListener;
 import com.skydoves.powermenu.PowerMenu;
@@ -42,52 +41,71 @@ import com.skydoves.powermenu.PowerMenuItem;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 
+/**
+ * Адаптер для активити AlbumDetails
+ */
 public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapter.ViewHolder> {
     private final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
     private final Context context;
-    static ArrayList<MusicFiles> albumFiles;
+    public static ArrayList<MusicFiles> albumFiles;
     public static ViewHolder lastAlbumHolder;
     private int lastPosition = -1;
+
+    /**
+     * Констуктор
+     * @param context Контекст
+     * @param musicFilesList список треков, которые будут отображаться
+     */
     AlbumDetailsAdapter(Context context, ArrayList<MusicFiles> musicFilesList) {
         this.albumFiles = musicFilesList;
         this.context = context;
     }
+
     @Override
+    /**
+     * Создание ViewHolder-а
+     * @param parent ViewGroup parent
+     * @param viewType тип View
+     * @return ViewHolder
+     */
     public AlbumDetailsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.music_items, parent, false);
         return new AlbumDetailsAdapter.ViewHolder(view);
     }
 
     @Override
+    /**
+     * В этом методе происходит "заполнение данными" каждого трека
+     * @param holder ViewHolder
+     * @param position позиция
+     */
     public void onBindViewHolder(AlbumDetailsAdapter.ViewHolder holder, int position) {
         Animation animation = AnimationUtils.loadAnimation(context,
                 (position > lastPosition) ? R.anim.recycleview_animation_down
                         : R.anim.recycleview_animation_up);
         holder.itemView.startAnimation(animation);
         lastPosition = position;
-        if(currentMusicPlaying != null && albumFiles.get(position).getId().equals(currentMusicPlaying.getId())) {
+        if (currentMusicPlaying != null && albumFiles.get(position).getId().equals(currentMusicPlaying.getId())) {
             lastAlbumHolder = holder;
             holder.equalizer.setVisibility(View.VISIBLE);
             //holder.equalizer.stopBars();
-            if(isPlaying)
+            if (isPlaying)
                 holder.equalizer.animateBars();
             else
                 holder.equalizer.stopBars();
             // holder.fileName.setTextColor(view.getResources().getColor(R.color.purple_200));
 
-                holder.fileName.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-                holder.fileName.setMarqueeRepeatLimit(-1);
-                holder.fileName.setHorizontallyScrolling(true);
-                holder.fileName.setSingleLine(true);
-                holder.fileName.setSelected(true);
+            holder.fileName.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            holder.fileName.setMarqueeRepeatLimit(-1);
+            holder.fileName.setHorizontallyScrolling(true);
+            holder.fileName.setSingleLine(true);
+            holder.fileName.setSelected(true);
             holder.imageBackground.setBackgroundResource(R.color.purple_200);
-        }
-        else {
-            if(!holder.equalizer.isAnimating())
+        } else {
+            if (!holder.equalizer.isAnimating())
                 holder.equalizer.stopBars();
             holder.equalizer.setVisibility(View.INVISIBLE);
             holder.fileName.setEllipsize(TextUtils.TruncateAt.END);
@@ -98,10 +116,10 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
         holder.fileName.setText(albumFiles.get(position).getTitle());
         holder.artistName.setText(albumFiles.get(position).getArtist());
         Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(albumFiles.get(position).getAlbumId()));
-        if(imageUri != null){
+        if (imageUri != null) {
             Glide.with(context).load(imageUri).into(holder.albumArt);
         }
-        if(holder.albumArt.getDrawable() == null) {
+        if (holder.albumArt.getDrawable() == null) {
             holder.albumArt.setImageResource(R.drawable.msc_back1);
         }
 
@@ -114,12 +132,12 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
                 SHOW_MINI_PLAYER = true;
 
                 holder.equalizer.setVisibility(View.VISIBLE);
-                if(!holder.equalizer.isAnimating())
+                if (!holder.equalizer.isAnimating())
                     holder.equalizer.animateBars();
                 // holder.fileName.setTextColor(view.getResources().getColor(R.color.purple_200));
                 holder.imageBackground.setBackgroundResource(R.color.purple_200);
                 isPlaying = true;
-               Activity activity = (Activity)context;
+                Activity activity = (Activity) context;
                 activity.startActivity(intent);
                 activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);
             }
@@ -131,7 +149,7 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
                 OnMenuItemClickListener<PowerMenuItem> onMenuItemClickListener = new OnMenuItemClickListener<PowerMenuItem>() {
                     @Override
                     public void onItemClick(int itemPosition, PowerMenuItem item) {
-                        if(itemPosition == 0){
+                        if (itemPosition == 0) {
                             deleteFile(position, view);
                         }
                     }
@@ -155,37 +173,41 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
     }
 
 
-    private void deleteFile(int position, View view){
+    /**
+     * Удаление трека
+     * @param position позиция трека
+     * @param view View элемент
+     */
+    private void deleteFile(int position, View view) {
         Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 Long.parseLong(albumFiles.get(position).getId()));
         File file = new File(albumFiles.get(position).getPath());
         boolean delete = file.delete();
-        if(delete) {
-            if(musicServiceMain.mediaPlayer != null && musicServiceMain.isPlaying() && currentMusicPlaying.getId().equals(albumFiles.get(position).getId())){
+        if (delete) {
+            if (musicServiceMain.mediaPlayer != null && musicServiceMain.isPlaying() && currentMusicPlaying.getId().equals(albumFiles.get(position).getId())) {
                 musicServiceMain.stop();
-                if(albumFiles.size() == 1){
+                if (albumFiles.size() == 1) {
                     musicServiceMain.stop();
                     SHOW_MINI_PLAYER = false;
                     musicServiceMain.updateBottomPlayer.updatePlayer();
                     NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                     mNotificationManager.cancel(12312);
-                }
-                else {
+                } else {
                     musicServiceMain.updateBottomPlayer.btn_nextClicked();
                     musicServiceMain.updateBottomPlayer.updatePlayer();
                 }
             }
             context.getContentResolver().delete(contentUri, null, null);
-            if(musicFiles != null) {
+            if (musicFiles != null) {
                 int indx = musicFiles.indexOf(albumFiles.get(position));
-                if(indx != -1) {
+                if (indx != -1) {
                     musicFiles.remove(indx);
                     notifyItemRangeChanged(indx, musicFiles.size());
                 }
             }
-            if(albums != null){
+            if (albums != null) {
                 int indx = albums.indexOf(albumFiles.get(position));
-                if(indx != -1) {
+                if (indx != -1) {
                     albums.remove(indx);
                     notifyItemRangeChanged(indx, albums.size());
                 }
@@ -194,40 +216,45 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
             notifyItemRemoved(position);
             notifyItemRangeChanged(position, albumFiles.size());
 
-            if(SongFragment.recyclerViewSong != null) {
+            if (SongFragment.recyclerViewSong != null) {
                 RecyclerView.Adapter songAdapter = SongFragment.recyclerViewSong.getAdapter();
                 if (songAdapter != null) {
                     songAdapter.notifyDataSetChanged();
                 }
             }
-            if(AlbumFragment.recyclerViewAlbum != null) {
+            if (AlbumFragment.recyclerViewAlbum != null) {
                 RecyclerView.Adapter albumAdapter = AlbumFragment.recyclerViewAlbum.getAdapter();
                 if (albumAdapter != null) {
                     albumAdapter.notifyDataSetChanged();
                 }
             }
             Snackbar.make(view, "Deleted", Snackbar.LENGTH_LONG).show();
-        }
-        else {
+        } else {
             Snackbar.make(view, "Can't be deleted", Snackbar.LENGTH_LONG).show();
         }
     }
 
+    /**
+     * @return Размер списка
+     */
     @Override
     public int getItemCount() {
         return albumFiles.size();
     }
 
 
+    /**
+     * Сам ViewHolder
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final ImageView albumArt;//Shapeable
         final TextView fileName;
         final TextView artistName;
         final ImageView menuMore;
         ImageView imageBackground;
-        EqualizerView equalizer;
+        public EqualizerView equalizer;
 
-        ViewHolder(View view){
+        ViewHolder(View view) {
             super(view);
             fileName = view.findViewById(R.id.music_file_name);
             albumArt = view.findViewById(R.id.music_img);

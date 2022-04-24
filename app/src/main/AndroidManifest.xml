@@ -15,17 +15,17 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@drawable/appicon"
         android:supportsRtl="true"
-        android:name=".ApplicationClass"
+        android:name=".music_service.ApplicationClass"
         android:theme="@style/Theme.Music_Player1"
         tools:replace="android:label">
         <activity
-            android:name=".AlbumDetails"
+            android:name=".album_details.AlbumDetails"
             android:exported="false" />
         <activity
-            android:name=".PlayerActivity"
+            android:name=".player_activity.PlayerActivity"
             android:exported="false" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".main_activity.SplashActivity"
             android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>
@@ -35,13 +35,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".main_activity.MainActivity"
 
             android:exported="true" />
 
 
-        <service android:name=".MusicService" android:enabled="true"/>
-        <receiver android:name=".NotificationReceiver" android:enabled="true"
+        <service android:name=".music_service.MusicService" android:enabled="true"/>
+        <receiver android:name=".music_service.NotificationReceiver" android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="actionprevious"></action>

@@ -1,18 +1,16 @@
-package com.polyap.music_player;
+package com.polyap.music_player.music_service;
 
-import static com.polyap.music_player.ApplicationClass.ACTION_DISMISS;
-import static com.polyap.music_player.ApplicationClass.ACTION_NEXT;
-import static com.polyap.music_player.ApplicationClass.ACTION_PLAY;
-import static com.polyap.music_player.ApplicationClass.ACTION_PREVIOUS;
-import static com.polyap.music_player.ApplicationClass.CHANNEL_ID_2;
-import static com.polyap.music_player.MainActivity.isRepeat;
-import static com.polyap.music_player.MainActivity.lastMusicPosition;
-import static com.polyap.music_player.MainActivity.lastMusicQueue;
-import static com.polyap.music_player.MainActivity.musicServiceMain;
-import static com.polyap.music_player.NowPlayingFragmentBottom.plPosition;
-import static com.polyap.music_player.PlayerActivity.FORWARD;
-import static com.polyap.music_player.PlayerActivity.MUSIC_LIST;
-import static com.polyap.music_player.PlayerActivity.QUEUE_MUSIC;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_DISMISS;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_NEXT;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_PLAY;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_PREVIOUS;
+import static com.polyap.music_player.music_service.ApplicationClass.CHANNEL_ID_2;
+import static com.polyap.music_player.main_activity.MainActivity.lastMusicPosition;
+import static com.polyap.music_player.main_activity.MainActivity.lastMusicQueue;
+import static com.polyap.music_player.player_activity.PlayerActivity.FORWARD;
+import static com.polyap.music_player.player_activity.PlayerActivity.MUSIC_LIST;
+import static com.polyap.music_player.player_activity.PlayerActivity.QUEUE_MUSIC;
+import static com.polyap.music_player.bottom_player.NowPlayingFragmentBottom.plPosition;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -33,25 +31,37 @@ import android.provider.MediaStore;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import com.polyap.music_player.player_activity.PlayerActivity;
+import com.polyap.music_player.R;
+import com.polyap.music_player.main_activity.SplashActivity;
+import com.polyap.music_player.interfaces.ActionPlaying;
+import com.polyap.music_player.interfaces.UpdateBottomPlayer;
+import com.polyap.music_player.object_serializer.ObjectSerializer;
 
+import java.io.IOException;
+
+/**
+ * Сервис собственной персоной
+ */
 public class MusicService extends Service implements MediaPlayer.OnCompletionListener {
     IBinder mBinder = new MyBinder();
-    MediaPlayer mediaPlayer ;
+    public static MediaPlayer mediaPlayer ;
     Uri uri;
     int position = plPosition;
-    ActionPlaying actionPlaying;
-    UpdateBottomPlayer updateBottomPlayer;
+    public ActionPlaying actionPlaying;
+    public UpdateBottomPlayer updateBottomPlayer;
     public static final String MUSIC_LAST_PLAYED = "LAST_PLAYED";
     public static final String MUSIC_FILE = "STORED_MUSIC";
     private final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
     MediaSessionCompat mediaSessionCompat;
+
+    /**
+     * Метод, вызываемый при создании сервиса
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -61,24 +71,30 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         mediaSessionCompat= new MediaSessionCompat(getBaseContext(), "My Audio");
     }
 
+    /**
+     * Если убрана задача, убираем сервис из строки уведомлений
+     * @param rootIntent Intent объект
+     */
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.cancel(12312);
+        deleteNot();
         super.onTaskRemoved(rootIntent);
     }
-    void deleteNot(){
+
+    /**
+     * Удаление из строки уведомлений
+     */
+    public void deleteNot(){
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(12312);
     }
-    @Override
-    public void onDestroy() {
 
-        super.onDestroy();
-    }
 
+    /**
+     * MyBinder класс
+     */
     public class MyBinder extends Binder{
-        MusicService getService(){
+        public MusicService getService(){
             return MusicService.this;
         }
     }
@@ -89,6 +105,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     }
 
 
+    /**
+     * Обработка действий сервиса
+     * @param intent Intent объект
+     * @param flags флаги
+     * @param startId int
+     * @return int
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         int myPosition = intent.getIntExtra("servicePosition",-1);
@@ -135,77 +158,119 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
         return START_STICKY;
     }
-    public void playMedia(int position){
 
-        this.position = position;
-        plPosition = position;
-        uri = Uri.parse(lastMusicQueue.get(position).getPath());
-        if(mediaPlayer != null){//это свой код 12 53
-            mediaPlayer.stop();
-            mediaPlayer.reset();
-            try {
-                mediaPlayer.setDataSource(String.valueOf(uri));
-                mediaPlayer.prepare();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        else{
-            mediaPlayer = MediaPlayer.create(getBaseContext(), uri);
-        }
+    /**
+     * Запускаем плеер
+     */
+    public void start(){
         mediaPlayer.start();
     }
-    void start(){
-        mediaPlayer.start();
-    }
-    boolean isPlaying(){
+
+    /**
+     * @return Предоставляется читателю самому догадаться, что возращает этот метод
+     */
+    public boolean isPlaying(){
         return mediaPlayer.isPlaying();
     }
-    void stop(){
+
+    /**
+     * останавливаем плеер
+     */
+    public void stop(){
         mediaPlayer.stop();
     }
-    void release() {
-        mediaPlayer.release();
-    }
-    int getDuration(){
+
+    /**
+     * @return длина трека
+     */
+    public int getDuration(){
         return mediaPlayer.getDuration();
     }
-    void seekTo(int position){
+
+    /**
+     * Перемещение плеера на нужную позицию
+     * @param position позиция в треке
+     */
+    public void seekTo(int position){
         mediaPlayer.seekTo(position);
     }
-    int getCurrentPosition(){
+
+    /**
+     * Получение позиции плеера
+     * @return текущее положение плеера
+     */
+    public int getCurrentPosition(){
         return mediaPlayer.getCurrentPosition();
     }
-    void createMediaPlayer(int position){
+
+    /**
+     * Создание плеера по нужному треку
+     * @param position позиция
+     */
+    public void createMediaPlayer(int position){
         uri = Uri.parse(lastMusicQueue.get(position).getPath());
         mediaPlayer = MediaPlayer.create(getBaseContext(), uri);
     }
 
-    void pause(){
+    /**
+     * Приостанавливаем плеер
+     */
+    public void pause(){
         mediaPlayer.pause();
     }
-    void reset() {
+
+    /**
+     * Сброс плеера
+     */
+    public void reset() {
         mediaPlayer.reset();
     }
-    void prepare() throws IOException {
+
+    /**
+     * Как неудивительно, но это подготовка плеера
+     * @throws IOException
+     */
+    public void prepare() throws IOException {
         mediaPlayer.prepare();
     }
-    void setDataSource(Uri uri) throws IOException {
+
+    /**
+     * Устанавливаем нужный трек в качестве источника
+     * @param uri Я называю его Юрий
+     * @throws IOException
+     */
+    public void setDataSource(Uri uri) throws IOException {
         mediaPlayer.setDataSource(getBaseContext(), uri);
     }
-    int getAudioSessionId(){
+
+    /**
+     * Получение id сессии
+     * @return идентификатор сессии
+     */
+    public int getAudioSessionId(){
         return mediaPlayer.getAudioSessionId();
     }
 
-    void setPosition(int position){
+    /**
+     * Устанавливаем позицию
+     * @param position позиция
+     */
+    public void setPosition(int position){
         this.position = position;
         plPosition = position;
     }
-    void OnCompleted(){
+
+    /**
+     * устанавливаем прослушивателя для медиаплеера
+     */
+    public void OnCompleted(){
         mediaPlayer.setOnCompletionListener(this);
     }
 
+    /**
+     * Прослушиватель окончания воспроизведения треков
+     * @param mediaPlayer это именно то, что вы думаете
+     */
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         if(actionPlaying != null){
@@ -217,23 +282,32 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
     }
 
-    private int getNewPosition(String direction){
-        if(direction.equals(FORWARD)){
-            return (position + 1) % lastMusicQueue.size();
-        }
-        else{
-            return (position - 1) < 0 ? (lastMusicQueue.size()) - 1: position - 1;
-        }
-    }
-    void setCallBack(ActionPlaying actionPlaying){
+
+    /**
+     * Колбэк для строки уведомлений
+     * @param actionPlaying интерфейс
+     */
+    public void setCallBack(ActionPlaying actionPlaying){
         this.actionPlaying = actionPlaying;
     }
-    void setCallBack1(UpdateBottomPlayer updateBottomPlayer){
+
+    /**
+     * Функция с довольно загадочным названием
+     * Колбэк для мини-плеера
+     * @param updateBottomPlayer интерфейс
+     */
+    public void setCallBack1(UpdateBottomPlayer updateBottomPlayer){
         this.updateBottomPlayer = updateBottomPlayer;
     }
 
 
-    void showNotification(int playPauseBtn, float playbackSpeed, int state){
+    /**
+     * Отображение сервиса в строке уведомлений
+     * @param playPauseBtn иконка
+     * @param playbackSpeed скорость обновления SeekBar-а в строке уведомлений
+     * @param state состояние
+     */
+    public void showNotification(int playPauseBtn, float playbackSpeed, int state){
         Intent intent = new Intent(this , PlayerActivity.class);
         PendingIntent contentIntent= PendingIntent.getActivity(this, 0, intent, 0);
 
@@ -316,18 +390,12 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     }
 
-    public void saveTracks(){//для норм кликов
-        SharedPreferences preferences = getSharedPreferences(QUEUE_MUSIC, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        try {
-            editor.putString(MUSIC_LIST, ObjectSerializer.serialize(lastMusicQueue));
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-        editor.commit();
-    }
-    void saveLastTrack(int position){
+
+    /**
+     * Сохранение последнего трека
+     * @param position позиция
+     */
+    public void saveLastTrack(int position){
         SharedPreferences.Editor editor = getSharedPreferences(MUSIC_LAST_PLAYED,MODE_PRIVATE).edit();
         editor.putInt(MUSIC_FILE, position);
         editor.apply();

@@ -1,10 +1,13 @@
-package com.polyap.music_player;
+package com.polyap.music_player.music_service;
 
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
 
+/**
+ * Доп класс для сервиса
+ */
 public class ApplicationClass extends Application {
     public static final String CHANNEL_ID_1 = "channel1";
     public static final String CHANNEL_ID_2 = "channel2";

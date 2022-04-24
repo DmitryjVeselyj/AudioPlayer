@@ -1,11 +1,9 @@
-package com.polyap.music_player;
+package com.polyap.music_player.album_fragment;
 
-import static com.polyap.music_player.MainActivity.musicFiles;
-import static com.polyap.music_player.PlayerActivity.fragment;
-import static com.polyap.music_player.PlayerActivity.getPosition;
+import static com.polyap.music_player.main_activity.MainActivity.musicFiles;
+import static com.polyap.music_player.player_activity.PlayerActivity.getPosition;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -22,23 +20,41 @@ import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.polyap.music_player.R;
+import com.polyap.music_player.album_details.AlbumDetails;
+import com.polyap.music_player.song_fragment.MusicFiles;
 
 import java.util.ArrayList;
 
 import me.zhanghai.android.fastscroll.PopupTextProvider;
 
 
+/**
+ * Адаптер для фрагмента "альбомы"
+ */
 public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> implements PopupTextProvider {
     private final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
     private Context context;
     public static ArrayList<MusicFiles> albumFilesFragment;
     private int lastPosition = -1;
     View view;
+
+    /**
+     * Констуктор
+     * @param context Контекст
+     * @param albumFiles список треков, альбомы которых будут отображаться
+     */
     public AlbumAdapter(Context context, ArrayList<MusicFiles> albumFiles){
         this.context = context;
         this.albumFilesFragment = albumFiles;
     }
 
+    /**
+     * Создание ViewHolder-а
+     * @param parent ViewGroup parent
+     * @param viewType тип View
+     * @return ViewHolder
+     */
     @NonNull
     @Override
     public AlbumAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -47,6 +63,11 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         return new ViewHolder(view);
     }
 
+    /**
+     * В этом методе происходит "заполнение данными" каждого альбома
+     * @param holder ViewHolder
+     * @param position позиция
+     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Animation animation = AnimationUtils.loadAnimation(context,
@@ -86,11 +107,19 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     }
 
 
+    /**
+     * @return размер списка альбомов
+     */
     @Override
     public int getItemCount() {
         return albumFilesFragment.size();
     }
 
+    /**
+     * Метод, используемый для скроллбара
+     * @param position позиция
+     * @return первый символ строки названия альбома
+     */
     @NonNull
     @Override
     public String getPopupText(int position) {
@@ -98,6 +127,9 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         return String.valueOf(albumN.charAt(0));
     }
 
+    /**
+     * ViewHilder класс
+     */
     public class ViewHolder extends RecyclerView.ViewHolder{
         ImageView albumImage;
         TextView albumName;
@@ -110,7 +142,11 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         }
     }
 
-    void updateList(ArrayList<MusicFiles> albumList){
+    /**
+     * Обновление списка альбомов
+     * @param albumList новый список треков, по которым строятся альбомы
+     */
+    public void updateList(ArrayList<MusicFiles> albumList){
         albumFilesFragment = new ArrayList<>();
         albumFilesFragment.addAll(albumList);
         notifyDataSetChanged();

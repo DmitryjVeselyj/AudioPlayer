@@ -1,27 +1,23 @@
-package com.polyap.music_player;
+package com.polyap.music_player.bottom_player;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
-import static com.polyap.music_player.AlbumDetailsAdapter.lastAlbumHolder;
-import static com.polyap.music_player.MainActivity.SHOW_MINI_PLAYER;
-import static com.polyap.music_player.MainActivity.currentMusicPlaying;
-import static com.polyap.music_player.MainActivity.isRepeat;
-import static com.polyap.music_player.MainActivity.lastMusicPosition;
-import static com.polyap.music_player.MainActivity.lastMusicQueue;
-import static com.polyap.music_player.MainActivity.musicServiceMain;
-import static com.polyap.music_player.MainActivity.oldMusicPlayed;
-import static com.polyap.music_player.MusicAdapter.lastHolder;
-import static com.polyap.music_player.MusicAdapter.musicFilesList;
-import static com.polyap.music_player.MusicService.MUSIC_FILE;
-import static com.polyap.music_player.MusicService.MUSIC_LAST_PLAYED;
-import static com.polyap.music_player.PlayerActivity.BACK;
-import static com.polyap.music_player.PlayerActivity.FORWARD;
-import static com.polyap.music_player.PlayerActivity.fragment;
-import static com.polyap.music_player.PlayerActivity.getPosition;
-import static com.polyap.music_player.PlayerActivity.isChangedMusic;
-import static com.polyap.music_player.PlayerActivity.isPlaying;
-import static com.polyap.music_player.PlayerActivity.updateSongList;
-import static com.polyap.music_player.SongFragment.musicAdapter;
+import static com.polyap.music_player.album_details.AlbumDetailsAdapter.lastAlbumHolder;
+import static com.polyap.music_player.main_activity.MainActivity.SHOW_MINI_PLAYER;
+import static com.polyap.music_player.main_activity.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.main_activity.MainActivity.isRepeat;
+import static com.polyap.music_player.main_activity.MainActivity.lastMusicPosition;
+import static com.polyap.music_player.main_activity.MainActivity.lastMusicQueue;
+import static com.polyap.music_player.main_activity.MainActivity.musicServiceMain;
+import static com.polyap.music_player.main_activity.MainActivity.oldMusicPlayed;
+import static com.polyap.music_player.music_service.MusicService.MUSIC_FILE;
+import static com.polyap.music_player.music_service.MusicService.MUSIC_LAST_PLAYED;
+import static com.polyap.music_player.song_fragment.MusicAdapter.lastHolder;
+import static com.polyap.music_player.player_activity.PlayerActivity.BACK;
+import static com.polyap.music_player.player_activity.PlayerActivity.FORWARD;
+import static com.polyap.music_player.player_activity.PlayerActivity.fragment;
+import static com.polyap.music_player.player_activity.PlayerActivity.isChangedMusic;
+import static com.polyap.music_player.player_activity.PlayerActivity.isPlaying;
+import static com.polyap.music_player.player_activity.PlayerActivity.updateSongList;
 
 import android.app.Activity;
 import android.app.NotificationManager;
@@ -35,7 +31,6 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -46,29 +41,36 @@ import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.palette.graphics.Palette;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.IBinder;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.polyap.music_player.player_activity.PlayerActivity;
+import com.polyap.music_player.R;
+import com.polyap.music_player.interfaces.UpdateBottomPlayer;
+import com.polyap.music_player.music_service.MusicService;
+import com.polyap.music_player.object_serializer.ObjectSerializer;
+import com.polyap.music_player.song_fragment.MusicFiles;
 import com.polyap.po_equalizer.DialogEqualizerFragment;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * класс, отвечающий за мини-плеер
+ */
 public class NowPlayingFragmentBottom extends Fragment implements ServiceConnection, UpdateBottomPlayer {
 
     ImageView nextBtn, albumArt, prevBtn;
     TextView artist, songName;
     ImageView playPauseBtn;
     public static View view;//мб под статики сделать
-    static MusicService musicServiceFrag;
+    public static MusicService musicServiceFrag;
     Uri uri;
 
     public static ColorDrawable lastColorBottom = new ColorDrawable(Color.BLACK);
@@ -80,7 +82,10 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         // Required empty public constructor
     }
 
-
+    /**
+     * метод Fragment, вызывается при создании фрагмента
+     * @param savedInstanceState сохранённое состояние
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +95,13 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     }
 
+    /**
+     * Инициализация
+     * @param inflater экземляр класса, создающего из layout-файла View-элемент
+     * @param container ViewGroup контейнер
+     * @param savedInstanceState сохранённое состояние
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -171,24 +183,12 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
             view.setVisibility(View.VISIBLE);
         return view;
     }
-    static void updateCurrentSong(){
-        /*if (SongFragment.recyclerViewSong != null) {
-            RecyclerView.Adapter songAdapter = SongFragment.recyclerViewSong.getAdapter();
-            if (songAdapter != null) {
-                if(currentMusicPlaying != null) {
-                    songAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) musicFilesList, currentMusicPlaying));
-                }
-            }
-        }
 
-        if(AlbumDetails.recyclerView != null){
-            RecyclerView.Adapter albumDetailsAdapter = AlbumDetails.recyclerView.getAdapter();
-            if(albumDetailsAdapter != null){
-                if(currentMusicPlaying != null)
-                    albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumFiles, currentMusicPlaying));
-            }
-        }
-        isChangedMusic = false;*/
+    /**
+     * обновление текущего трека(анимация)
+     */
+    public static void updateCurrentSong(){
+
         if(lastHolder != null) {
             if (isPlaying) {
                 lastHolder.equalizer.animateBars();
@@ -204,19 +204,10 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
             }
         }
     }
-    void saveLastTrack(int position){
-        if(getActivity()!= null) {
-            SharedPreferences.Editor editor = getActivity().getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit();
-            ArrayList<MusicFiles> tmp = new ArrayList<>();
-            tmp.add(lastMusicQueue.get(position));
-            try {
-                editor.putString(MUSIC_FILE, ObjectSerializer.serialize(tmp));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            editor.apply();
-        }
-    }
+
+    /**
+     * Вызывается при "восстановлении" фрагментп
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -232,6 +223,11 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     }
 
 
+    /**
+     * Как только сервис подключился, инициализируем элементы
+     * @param componentName имя компонента
+     * @param iBinder элемент, реализующий интерфейс IBinder
+     */
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
         MusicService.MyBinder binder = (MusicService.MyBinder) iBinder;
@@ -241,15 +237,20 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         musicServiceMain = musicServiceFrag;
     }
 
+    /**
+     * Метод вызывается, если сервис отключился
+     * @param componentName имя компонента
+     */
     @Override
     public void onServiceDisconnected(ComponentName componentName) {
         musicServiceFrag = null;
     }
 
-    void nextBtnClick(){
-        musicServiceFrag.mediaPlayer.seekTo(0);
-        musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
-    }
+
+    /**
+     * Запуск проигрывания музыки
+     * @param position позиция трека
+     */
     void playMusic(int position){
         plPosition = position;
         PlayerActivity.position = position;
@@ -317,6 +318,8 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         //updatePlayer();
         init = true;
     }
+
+    //Вы этого не видели
     private void equalizerUpdate(){
         FragmentManager fm = getActivity().getSupportFragmentManager();//дичайший костыль. Еле держится, но работает
         fm.beginTransaction().hide(fragment).commit();
@@ -324,6 +327,11 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         fm.beginTransaction().remove(fragment).commit();
     }
 
+    /**
+     * Метод, возращающий позицию нового трека
+     * @param direction направление
+     * @return позиция нового трека для запуска
+     */
     private int getNewPosition(String direction){
         if(isRepeat)
             return plPosition;
@@ -334,6 +342,10 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
             return (plPosition - 1) < 0 ? (lastMusicQueue.size()) - 1: plPosition - 1;
         }
     }
+
+    /**
+     * Инициализация сервиса
+     */
     void initService(){
         if(musicServiceFrag == null) {
             Intent intent = new Intent(getContext(), MusicService.class);
@@ -342,6 +354,9 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         }
     }
 
+    /**
+     * Плавное изменение цвета мини-плеера в зависимости от трека
+     */
     private void changeBackColor(){
         Bitmap bitmap = ((BitmapDrawable)albumArt.getDrawable()).getBitmap();
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
@@ -352,7 +367,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
                     float[] hsl = swatch.getHsl();
                     hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
                     hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
-                    hsl[2] = hsl[2] > (float) 0.83? (float)0.3:hsl[2];//поменять когда-то
+                    hsl[2] = hsl[2] > (float) 0.83? (float)0.3:hsl[2];
                     int color = ColorUtils.HSLToColor(hsl);
                     ColorDrawable colorDrawable1 = new ColorDrawable(color);
                     ColorDrawable[] cd = {lastColorBottom, colorDrawable1};
@@ -367,13 +382,10 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         });
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
 
-
-
+    /**
+     * Реализация метода интерфейса
+     */
     @Override
     public void updatePlayer() {
             Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(lastMusicQueue.get(lastMusicPosition).getAlbumId()));
@@ -399,6 +411,9 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     }
 
     @Override
+    /**
+     * Реализация метода интерфейса
+     */
     public void btn_play_pauseClicked() {
         if(musicServiceFrag.isPlaying()){
             musicServiceFrag.pause();
@@ -415,6 +430,9 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     }
 
     @Override
+    /**
+     * Реализация метода интерфейса
+     */
     public void btn_nextClicked() {
         musicServiceFrag.mediaPlayer.seekTo(0);
         if(isPlaying)
@@ -425,16 +443,22 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     }
 
     @Override
+    /**
+     * Реализация метода интерфейса
+     */
     public void btn_prevClicked() {
         musicServiceFrag.mediaPlayer.seekTo(0);
         if(isPlaying)
-            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);//1f state playing
         else
-            musicServiceFrag.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
+            musicServiceFrag.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);//0f
         playMusic(getNewPosition(BACK));
     }
 
     @Override
+    /**
+     * Реализация метода интерфейса
+     */
     public void btn_dismiss() {
         Activity activity = getActivity();
         if(activity != null && activity.getBaseContext() != null) {
@@ -451,10 +475,10 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         updateCurrentSong();
     }
 
-    @Override
-    public void btn_start() {
-        playMusic(plPosition);
-    }
+    /**
+     * Связываем фрагмент с активити
+     * @param activity Активити
+     */
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);

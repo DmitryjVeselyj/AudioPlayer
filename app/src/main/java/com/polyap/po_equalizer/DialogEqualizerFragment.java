@@ -1,8 +1,8 @@
 package com.polyap.po_equalizer;
 
 
-import static com.polyap.music_player.PlayerActivity.equalizerBtn;
-import static com.polyap.music_player.MainActivity.isEqualize;
+import static com.polyap.music_player.player_activity.PlayerActivity.equalizerBtn;
+import static com.polyap.music_player.main_activity.MainActivity.isEqualize;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

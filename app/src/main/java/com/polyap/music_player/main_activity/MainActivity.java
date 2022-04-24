@@ -1,76 +1,51 @@
-package com.polyap.music_player;
+package com.polyap.music_player.main_activity;
 
-import static android.content.ContentValues.TAG;
 
-import static com.polyap.music_player.AlbumAdapter.albumFilesFragment;
-import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
-import static com.polyap.music_player.AlbumFragment.albums;
-import static com.polyap.music_player.MusicAdapter.musicFilesList;
-import static com.polyap.music_player.MusicService.MUSIC_FILE;
-import static com.polyap.music_player.MusicService.MUSIC_LAST_PLAYED;
-import static com.polyap.music_player.PlayerActivity.BACK;
-import static com.polyap.music_player.PlayerActivity.FORWARD;
-import static com.polyap.music_player.PlayerActivity.MUSIC_LIST;
-import static com.polyap.music_player.PlayerActivity.QUEUE_MUSIC;
-import static com.polyap.music_player.PlayerActivity.isChangedMusic;
-import static com.polyap.music_player.PlayerActivity.setWindowFlag;
-import static com.polyap.music_player.SongFragment.recyclerViewSong;
-import static com.polyap.music_player.SongFragment.sortDirection;
+import static com.polyap.music_player.player_activity.PlayerActivity.BACK;
+import static com.polyap.music_player.player_activity.PlayerActivity.MUSIC_LIST;
+import static com.polyap.music_player.player_activity.PlayerActivity.QUEUE_MUSIC;
+import static com.polyap.music_player.album_fragment.AlbumFragment.albums;
+import static com.polyap.music_player.music_service.MusicService.MUSIC_FILE;
+import static com.polyap.music_player.music_service.MusicService.MUSIC_LAST_PLAYED;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.ActionBar;
-import android.app.NotificationManager;
-import android.app.SearchManager;
-import android.content.ContentProvider;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.SearchView;
-import android.widget.TableLayout;
-import android.widget.Toast;
 
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.polyap.music_player.R;
+import com.polyap.music_player.album_fragment.AlbumFragment;
+import com.polyap.music_player.music_service.MusicService;
+import com.polyap.music_player.object_serializer.ObjectSerializer;
+import com.polyap.music_player.song_fragment.MusicFiles;
+import com.polyap.music_player.song_fragment.SongFragment;
 
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 
+/**
+ * Главная активити, которая появляется после загрузочного экрана
+ */
 public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
     public final static int MIN_MUSIC_DURATION = 30;
     public final static int REQUEST_CODE = 1;
@@ -81,14 +56,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public static String MY_SORT_PREF = "SortOrder";
     public static String sortOrderText;
     public static boolean SHOW_MINI_PLAYER = false;
-    public static String PATH_TO_FRAG = null;
     public static ArrayList<MusicFiles> lastMusicQueue = null;
-    public static int lastMusicPosition=-1;
+    public static int lastMusicPosition = -1;
     public static MusicService musicServiceMain;
     ViewPager2 viewPager2;
     SearchView searchView;
     static boolean isInit = false;
-
 
 
     String[] PERMISSIONS = {
@@ -98,22 +71,23 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             Manifest.permission.FOREGROUND_SERVICE
     };
 
-    static ArrayList<MusicFiles> musicFiles;
+    public static ArrayList<MusicFiles> musicFiles;
+
+    /**
+     * метод AppCompatActivity, вызывается при создании активити
+     * @param savedInstanceState сохранённое состояние
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-        /*Window window = getWindow();
-        window.setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-        );*/
         permission();
-
     }
 
-    private void Init(){
+    /**
+     * инициализация элементов активити
+     */
+    private void Init() {
         viewPager2 = findViewById(R.id.main_view_pager2);
         TabLayout tabLayout = findViewById(R.id.main_tab_layout);
         ViewPager2Adapter viewPager2Adapter = new ViewPager2Adapter(this);
@@ -123,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         viewPager2.setPageTransformer(new Pager2_ZoomOutTransformer());
 
 
-        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabLayout, viewPager2, new TabLayoutMediator.TabConfigurationStrategy(){
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabLayout, viewPager2, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
             public void onConfigureTab(TabLayout.Tab tab, int position) {
                 tab.setText(viewPager2Adapter.getPageTitle(position));
@@ -147,8 +121,14 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         tabLayoutMediator.attach();
 
 
-
     }
+
+    /**
+     * Проверка разрешений
+     * @param context контекст
+     * @param permissions разрешения, необхоидмые для работы приложения
+     * @return True - если все разрешения получены, иначе - false
+     */
     private boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -159,14 +139,17 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         }
         return true;
     }
+
+    /**
+     * Функция, которая запускает проверку наличия разрешений и выполняет дальнейшую инициализацию приложения
+     */
     private void permission() {
-        if(!hasPermissions(this, PERMISSIONS)){
+        if (!hasPermissions(this, PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_CODE);
-        }
-        else{
+        } else {
             ALL_PERMISSIONS_GRANTED = true;
             musicFiles = getAllAudio();
-            if(!isInit) {
+            if (!isInit) {
                 restoreMusic();
             }
             isInit = true;
@@ -175,11 +158,17 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     }
 
+    /**
+     * Проверка результатов, полученных от пользователя при запросах разрешений
+     * @param requestCode код запроса
+     * @param permissions разрешения
+     * @param grantResults полученные результаты
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == REQUEST_CODE){
-            if(grantResults.length > 0) {
+        if (requestCode == REQUEST_CODE) {
+            if (grantResults.length > 0) {
                 boolean isAllGranted = true;
                 for (int i = 0; i < PERMISSIONS.length; i++) {
                     if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
@@ -189,23 +178,26 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 }
                 ALL_PERMISSIONS_GRANTED = isAllGranted;
             }
-            if(ALL_PERMISSIONS_GRANTED){
+            if (ALL_PERMISSIONS_GRANTED) {
                 musicFiles = getAllAudio();
-                if(!isInit) {
+                if (!isInit) {
                     restoreMusic();
                 }
                 isInit = true;
                 Init();
 
-            }
-            else{
+            } else {
                 ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_CODE);
             }
 
         }
     }
 
-    public ArrayList<MusicFiles> getAllAudio(){
+    /**
+     * Поиск доступных треков на устройстве
+     * @return список треков
+     */
+    public ArrayList<MusicFiles> getAllAudio() {
         SharedPreferences preferences = getSharedPreferences(MY_SORT_PREF, MODE_PRIVATE);
         String sortOrder = preferences.getString("sorting", "sortByName");
         String direction = preferences.getString("direction", BACK);
@@ -225,9 +217,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 MediaStore.Audio.Media.DATE_ADDED
         };
 
-        Cursor cursor = getApplicationContext().getContentResolver().query(uri, projection,null,null,null);
-        if(cursor != null){
-            while(cursor.moveToNext()){
+        Cursor cursor = getApplicationContext().getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
                 String album = cursor.getString(0);
                 String title = cursor.getString(1);
                 String duration = cursor.getString(2);
@@ -238,27 +230,27 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 String size = cursor.getString(7);
                 String date = cursor.getString(8);
 
-                MusicFiles musicFiles = new MusicFiles(title,album,artist,duration, path, albumId, id, date, size);
+                MusicFiles musicFiles = new MusicFiles(title, album, artist, duration, path, albumId, id, date, size);
 
-                if(duration != null && Integer.parseInt(duration)/ 1000 > MIN_MUSIC_DURATION && new File(musicFiles.getPath()).exists()) {
+                if (duration != null && Integer.parseInt(duration) / 1000 > MIN_MUSIC_DURATION && new File(musicFiles.getPath()).exists()) {
                     tmpAudioList.add(musicFiles);
                 }
             }
         }
-        switch (sortOrder){
+        switch (sortOrder) {
             case "sortByName":
-                sortOrderText = "Sort by name" ;
-                sortDirection = direction;
-                Collections.sort(tmpAudioList, new SongFragment.EventDetailSortByName() );
+                sortOrderText = "Sort by name";
+                SongFragment.sortDirection = direction;
+                Collections.sort(tmpAudioList, new SongFragment.EventDetailSortByName());
                 break;
             case "sortByDate":
-                sortOrderText = "Sort by date" ;
-                sortDirection = direction;
+                sortOrderText = "Sort by date";
+                SongFragment.sortDirection = direction;
                 Collections.sort(tmpAudioList, new SongFragment.EventDetailSortByDate());
                 break;
             case "sortBySize":
-                sortOrderText = "Sort by size" ;
-                sortDirection = direction;
+                sortOrderText = "Sort by size";
+                SongFragment.sortDirection = direction;
                 Collections.sort(tmpAudioList, new SongFragment.EventDetailSortBySize());
                 break;
         }
@@ -266,16 +258,13 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         return tmpAudioList;
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
+    /**
+     * Создание панели поиска треков
+     *
+     * @param menu меню
+     * @return результат конструктора супер класса
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -286,35 +275,43 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * @param s строка
+     * @return
+     */
     @Override
     public boolean onQueryTextSubmit(String s) {
         return true;
     }
 
+    /**
+     * Поиск треков по введённому тексту
+     * @param s строка
+     * @return true
+     */
     @Override
     public boolean onQueryTextChange(String s) {
         String userInput = s.toLowerCase(Locale.ROOT);
         ArrayList<MusicFiles> files = new ArrayList<>();
         int position = viewPager2.getCurrentItem();
         ArrayList<MusicFiles> album = new ArrayList<>();
-        if(AlbumFragment.albumAdapter != null){
+        if (AlbumFragment.albumAdapter != null) {
             album = albums;
         }
-        if(position == 0) {
+        if (position == 0) {
             for (MusicFiles song : musicFiles) {
                 if (song.getTitle().toLowerCase(Locale.ROOT).contains(userInput) || song.getArtist().toLowerCase(Locale.ROOT).contains(userInput)) {
                     files.add(song);
                 }
             }
             SongFragment.musicAdapter.updateList(files);
-            if(AlbumFragment.albumAdapter != null){
+            if (AlbumFragment.albumAdapter != null) {
                 AlbumFragment.albumAdapter.updateList(album);
             }
 
-        }
-        else{
+        } else {
             for (MusicFiles song : albums) {
-                if (song.getAlbum().toLowerCase(Locale.ROOT).contains(userInput)|| song.getArtist().toLowerCase(Locale.ROOT).contains(userInput)) {
+                if (song.getAlbum().toLowerCase(Locale.ROOT).contains(userInput) || song.getArtist().toLowerCase(Locale.ROOT).contains(userInput)) {
                     files.add(song);
                 }
             }
@@ -324,7 +321,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         return true;
     }
-    public void restoreMusic(){
+
+    /**
+     * восстанавливаем последний запущенный трек
+     */
+    public void restoreMusic() {
         SharedPreferences preferences = getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE);
         SharedPreferences preferencesQueue = getSharedPreferences(QUEUE_MUSIC, MODE_PRIVATE);
         try {
@@ -335,72 +336,63 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         try {
             lastMusicQueue = (ArrayList<MusicFiles>) ObjectSerializer.deserialize(preferencesQueue.getString(MUSIC_LIST, ObjectSerializer.serialize(new ArrayList<MusicFiles>())));
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        if(lastMusicPosition != -1 && lastMusicQueue != null && lastMusicQueue.size() != 0){
-            for(int i = 0; i < lastMusicQueue.size(); i++){
-                if(!new File(lastMusicQueue.get(i).getPath()).exists()){
+        if (lastMusicPosition != -1 && lastMusicQueue != null && lastMusicQueue.size() != 0) {
+            for (int i = 0; i < lastMusicQueue.size(); i++) {
+                if (!new File(lastMusicQueue.get(i).getPath()).exists()) {
                     lastMusicQueue.remove(i);
-                    lastMusicPosition = lastMusicPosition==i?0:lastMusicPosition;
+                    lastMusicPosition = lastMusicPosition == i ? 0 : lastMusicPosition;
                 }
             }
-            if(lastMusicQueue.size() == 0){
+            if (lastMusicQueue.size() == 0) {
                 SHOW_MINI_PLAYER = false;
-                if(musicFiles != null && musicFiles.size() != 0) {
+                if (musicFiles != null && musicFiles.size() != 0) {
                     lastMusicPosition = 0;
                     lastMusicQueue = (ArrayList<MusicFiles>) musicFiles.clone();
-                    SHOW_MINI_PLAYER=true;
+                    SHOW_MINI_PLAYER = true;
                 }
-            }
-            else
+            } else
                 SHOW_MINI_PLAYER = true;
-        }
-        else{
+        } else {
 
             SHOW_MINI_PLAYER = false;
-            if(musicFiles != null && musicFiles.size() != 0) {
+            if (musicFiles != null && musicFiles.size() != 0) {
                 lastMusicPosition = 0;
                 lastMusicQueue = (ArrayList<MusicFiles>) musicFiles.clone();
-                SHOW_MINI_PLAYER=true;
+                SHOW_MINI_PLAYER = true;
             }
         }
-    }
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-
     }
 
 
 }
 
+/**
+ * трансформер для ViewPager(анимация перелистывания между фрагментами)
+ */
 class Pager2_ZoomOutTransformer implements ViewPager2.PageTransformer {
 
     private static final float MIN_SCALE = 0.65f;
     private static final float MIN_ALPHA = 0.3f;
 
+    /**
+     * Алгоритм трансформации при перелистывании
+     * @param page страница
+     * @param position позиция
+     */
     @Override
     public void transformPage(@NonNull View page, float position) {
-        if (position <-1){  // [-Infinity,-1)
-            // This page is way off-screen to the left.
+        if (position < -1) {
             page.setAlpha(0);
-        }
-        else if (position <=1){ // [-1,1]
-            page.setScaleX(Math.max(MIN_SCALE,1-Math.abs(position)));
-            page.setScaleY(Math.max(MIN_SCALE,1-Math.abs(position)));
-            page.setAlpha(Math.max(MIN_ALPHA,1-Math.abs(position)));
-        }
-        else {  // (1,+Infinity]
-            // This page is way off-screen to the right.
+        } else if (position <= 1) {
+            page.setScaleX(Math.max(MIN_SCALE, 1 - Math.abs(position)));
+            page.setScaleY(Math.max(MIN_SCALE, 1 - Math.abs(position)));
+            page.setAlpha(Math.max(MIN_ALPHA, 1 - Math.abs(position)));
+        } else {
             page.setAlpha(0);
         }
     }

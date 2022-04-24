@@ -1,11 +1,7 @@
-package com.polyap.music_player;
+package com.polyap.music_player.album_fragment;
 
-import static com.polyap.music_player.MainActivity.currentMusicPlaying;
-import static com.polyap.music_player.MainActivity.musicFiles;
-import static com.polyap.music_player.MainActivity.oldMusicPlayed;
-import static com.polyap.music_player.PlayerActivity.isChangedMusic;
+import static com.polyap.music_player.main_activity.MainActivity.musicFiles;
 
-import android.graphics.Rect;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -16,25 +12,47 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.polyap.music_player.R;
+import com.polyap.music_player.song_fragment.MusicFiles;
+
 import java.util.ArrayList;
 
 import me.zhanghai.android.fastscroll.FastScrollerBuilder;
 
-public class AlbumFragment extends Fragment  {
+/**
+ * Фрагмент вкладки "альбомы"
+ */
+public class AlbumFragment extends Fragment {
 
-    static RecyclerView recyclerViewAlbum;
-    static AlbumAdapter albumAdapter;
-    static ArrayList<MusicFiles> albums = new ArrayList<>();
+    public static RecyclerView recyclerViewAlbum;
+    public static AlbumAdapter albumAdapter;
+    public static ArrayList<MusicFiles> albums = new ArrayList<>();
+
     public AlbumFragment() {
         // Required empty public constructor
     }
 
+    /**
+     * метод Fragment, вызывается при создании фрагмента
+     *
+     * @param savedInstanceState сохранённое состояние
+     */
     @Override
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
+    /**
+     * Инициализация
+     *
+     * @param inflater           экземляр класса, создающего из layout-файла View-элемент
+     * @param container          ViewGroup контейнер
+     * @param savedInstanceState сохранённое состояние
+     * @return
+     */
     @Override
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_album, container, false);
@@ -42,8 +60,8 @@ public class AlbumFragment extends Fragment  {
         recyclerViewAlbum.setHasFixedSize(true);
         new FastScrollerBuilder(recyclerViewAlbum).useMd2Style().build();
         ArrayList<String> albumsName = new ArrayList<>();
-        for(int i = 0; i < musicFiles.size(); i++){
-            if(!albumsName.contains(musicFiles.get(i).getAlbum())){
+        for (int i = 0; i < musicFiles.size(); i++) {
+            if (!albumsName.contains(musicFiles.get(i).getAlbum())) {
                 albums.add(musicFiles.get(i));//округление углов у карточек
                 albumsName.add(musicFiles.get(i).getAlbum());
             }
@@ -55,8 +73,4 @@ public class AlbumFragment extends Fragment  {
         return view;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
 }

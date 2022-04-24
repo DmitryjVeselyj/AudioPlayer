@@ -1,23 +1,16 @@
-package com.polyap.music_player;
+package com.polyap.music_player.album_details;
 
-import static com.polyap.music_player.AlbumDetailsAdapter.albumFiles;
-import static com.polyap.music_player.MainActivity.currentMusicPlaying;
-import static com.polyap.music_player.MainActivity.lastMusicPosition;
-import static com.polyap.music_player.MainActivity.musicFiles;
-import static com.polyap.music_player.MainActivity.musicServiceMain;
-import static com.polyap.music_player.MainActivity.oldMusicPlayed;;
-import static com.polyap.music_player.MusicAdapter.musicFilesList;
-import static com.polyap.music_player.PlayerActivity.getPosition;
-import static com.polyap.music_player.PlayerActivity.isChangedMusic;
-import static com.polyap.music_player.PlayerActivity.setWindowFlag;
+import static com.polyap.music_player.main_activity.MainActivity.currentMusicPlaying;
+import static com.polyap.music_player.main_activity.MainActivity.musicFiles;
+import static com.polyap.music_player.main_activity.MainActivity.oldMusicPlayed;;
+import static com.polyap.music_player.player_activity.PlayerActivity.getPosition;
+import static com.polyap.music_player.player_activity.PlayerActivity.isChangedMusic;
+import static com.polyap.music_player.player_activity.PlayerActivity.setWindowFlag;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,22 +19,24 @@ import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.polyap.music_player.R;
+import com.polyap.music_player.song_fragment.MusicFiles;
 
 import java.util.ArrayList;
 
+/**
+ * Активити, которая отвечает за "детали альбомов"
+ */
 public class AlbumDetails extends AppCompatActivity {
     private final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
-    static RecyclerView recyclerView;
+    public static RecyclerView recyclerView;
     ImageView albumPhoto;
     ImageView albumPhotoBottom;
     TextView albumNameText;
@@ -54,13 +49,11 @@ public class AlbumDetails extends AppCompatActivity {
     ArrayList<MusicFiles> albumSongs = new ArrayList<>();
 
 
-    private TypedValue mTypedValue = new TypedValue();
-    private int mHeaderHeight;
-    private int mMinHeaderTranslation;
-    private int mActionBarHeight;
-    private RectF mRect1 = new RectF();
-    private RectF mRect2 = new RectF();
     @Override
+    /**
+     * метод AppCompatActivity, вызывается при создании активити
+     * @param savedInstanceState сохранённое состояние
+     */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_album_details);
@@ -70,7 +63,10 @@ public class AlbumDetails extends AppCompatActivity {
 
 
     }
-    private void init(){
+    /**
+     * инициализация элементов активити
+     */
+    private void init() {
         recyclerView = findViewById(R.id.recycle_view_details);
         albumPhoto = findViewById(R.id.album_photo);
         albumNameText = findViewById(R.id.album_name);
@@ -82,13 +78,13 @@ public class AlbumDetails extends AppCompatActivity {
         position = getIntent().getIntExtra("position", -1);
 
         int j = 0;
-        for(int i = 0; i < musicFiles.size(); i++){
-            if(albumName.equals(musicFiles.get(i).getAlbum())){
-                albumSongs.add(j , musicFiles.get(i));
+        for (int i = 0; i < musicFiles.size(); i++) {
+            if (albumName.equals(musicFiles.get(i).getAlbum())) {
+                albumSongs.add(j, musicFiles.get(i));
                 j++;
             }
         }
-        if(!(albumSongs.size() < 1)){
+        if (!(albumSongs.size() < 1)) {
             albumDetailsAdapter = new AlbumDetailsAdapter(this, albumSongs);
             recyclerView.setAdapter(albumDetailsAdapter);
             recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
@@ -113,28 +109,39 @@ public class AlbumDetails extends AppCompatActivity {
 
     }
 
+    /**
+     * Скрываем системные бары
+     */
     private void hideSystemBars() {
         ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null)
+        if (actionBar != null)
             actionBar.hide();
         statusBartoTransparent();
     }
-    private void loadImage(int position){
+
+    /**
+     * Загрузка изображения
+     * @param position позиция трека
+     */
+    private void loadImage(int position) {
         Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(musicFiles.get(position).getAlbumId()));
-        if(imageUri != null){
+        if (imageUri != null) {
             Glide.with(this).load(imageUri).error(R.drawable.msc_back1).into(albumPhoto);
             Glide.with(this).load(imageUri).into(albumPhotoBottom);
         }
     }
 
+    /**
+     * Метод, запускается, когда мы возращаемся к активити
+     */
     @Override
     protected void onResume() {
-        if(AlbumDetails.recyclerView != null && isChangedMusic){
+        if (AlbumDetails.recyclerView != null && isChangedMusic) {
             RecyclerView.Adapter albumDetailsAdapter = AlbumDetails.recyclerView.getAdapter();
-            if(albumDetailsAdapter != null){
-                if(oldMusicPlayed != null)
+            if (albumDetailsAdapter != null) {
+                if (oldMusicPlayed != null)
                     albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumSongs, oldMusicPlayed));
-                if(currentMusicPlaying != null)
+                if (currentMusicPlaying != null)
                     albumDetailsAdapter.notifyItemChanged(getPosition((ArrayList<MusicFiles>) albumSongs, currentMusicPlaying));
             }
         }
@@ -142,7 +149,10 @@ public class AlbumDetails extends AppCompatActivity {
 
     }
 
-    public void statusBartoTransparent(){
+    /**
+     * делаем статус-бар безграничным
+     */
+    public void statusBartoTransparent() {
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
             setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
         }
@@ -156,8 +166,4 @@ public class AlbumDetails extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
 }

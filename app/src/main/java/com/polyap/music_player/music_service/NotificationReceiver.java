@@ -1,14 +1,17 @@
-package com.polyap.music_player;
+package com.polyap.music_player.music_service;
 
-import static com.polyap.music_player.ApplicationClass.ACTION_DISMISS;
-import static com.polyap.music_player.ApplicationClass.ACTION_NEXT;
-import static com.polyap.music_player.ApplicationClass.ACTION_PLAY;
-import static com.polyap.music_player.ApplicationClass.ACTION_PREVIOUS;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_DISMISS;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_NEXT;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_PLAY;
+import static com.polyap.music_player.music_service.ApplicationClass.ACTION_PREVIOUS;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+/**
+ * Класс отвечающий за обработку действий сервиса
+ */
 public class NotificationReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {

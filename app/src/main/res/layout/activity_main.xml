@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:id="@+id/bottom_frag"
-            android:name="com.polyap.music_player.NowPlayingFragmentBottom"
+            android:name="com.polyap.music_player.bottom_player.NowPlayingFragmentBottom"
             tools:layout="@layout/fragment_now_playing_bottom">
         </fragment>
     </androidx.cardview.widget.CardView>

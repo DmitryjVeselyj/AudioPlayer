@@ -1,7 +1,10 @@
-package com.polyap.music_player;
+package com.polyap.music_player.song_fragment;
 
 import java.io.Serializable;
 
+/**
+ * Класс, который а ля "трек"
+ */
 public class MusicFiles implements Serializable {
     private String title;
     private String album;
@@ -12,7 +15,7 @@ public class MusicFiles implements Serializable {
     private String albumId;
     private String id;
     private String size;
-
+    //Комментатор отказался давать комментарии
     public MusicFiles() {
 
     }
