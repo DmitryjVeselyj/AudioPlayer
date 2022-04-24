@@ -15,6 +15,7 @@ public class ObjectSerializer {
 
     /**
      * Сериализация объекта
+     *
      * @param obj объект
      * @return строка
      * @throws IOException
@@ -30,6 +31,7 @@ public class ObjectSerializer {
 
     /**
      * Десериализация объекта
+     *
      * @param str строка
      * @return объект
      * @throws IOException
@@ -44,6 +46,7 @@ public class ObjectSerializer {
 
     /**
      * Кодирование байтов
+     *
      * @param bytes массив байтов
      * @return строка
      */
@@ -60,16 +63,17 @@ public class ObjectSerializer {
 
     /**
      * Декодирование байтов
+     *
      * @param str стркоа
      * @return массив байтов
      */
     public static byte[] decodeBytes(String str) {
         byte[] bytes = new byte[str.length() / 2];
-        for (int i = 0; i < str.length(); i+=2) {
+        for (int i = 0; i < str.length(); i += 2) {
             char c = str.charAt(i);
-            bytes[i/2] = (byte) ((c - 'a') << 4);
-            c = str.charAt(i+1);
-            bytes[i/2] += (c - 'a');
+            bytes[i / 2] = (byte) ((c - 'a') << 4);
+            c = str.charAt(i + 1);
+            bytes[i / 2] += (c - 'a');
         }
         return bytes;
     }

@@ -15,13 +15,15 @@ public class ApplicationClass extends Application {
     public static final String ACTION_NEXT = "actionnext";
     public static final String ACTION_PLAY = "actionplay";
     public static final String ACTION_DISMISS = "actiondismiss";
+
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
     }
-    private void createNotificationChannel(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel1 = new NotificationChannel(CHANNEL_ID_1, "Channel(1)",
                     NotificationManager.IMPORTANCE_HIGH);
             NotificationChannel channel2 = new NotificationChannel(CHANNEL_ID_2, "Channel(2)",

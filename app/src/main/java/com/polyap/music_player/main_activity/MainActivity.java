@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     /**
      * метод AppCompatActivity, вызывается при создании активити
+     *
      * @param savedInstanceState сохранённое состояние
      */
     @Override
@@ -125,7 +126,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     /**
      * Проверка разрешений
-     * @param context контекст
+     *
+     * @param context     контекст
      * @param permissions разрешения, необхоидмые для работы приложения
      * @return True - если все разрешения получены, иначе - false
      */
@@ -160,8 +162,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     /**
      * Проверка результатов, полученных от пользователя при запросах разрешений
-     * @param requestCode код запроса
-     * @param permissions разрешения
+     *
+     * @param requestCode  код запроса
+     * @param permissions  разрешения
      * @param grantResults полученные результаты
      */
     @Override
@@ -195,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     /**
      * Поиск доступных треков на устройстве
+     *
      * @return список треков
      */
     public ArrayList<MusicFiles> getAllAudio() {
@@ -286,6 +290,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     /**
      * Поиск треков по введённому тексту
+     *
      * @param s строка
      * @return true
      */
@@ -381,7 +386,8 @@ class Pager2_ZoomOutTransformer implements ViewPager2.PageTransformer {
 
     /**
      * Алгоритм трансформации при перелистывании
-     * @param page страница
+     *
+     * @param page     страница
      * @param position позиция
      */
     @Override

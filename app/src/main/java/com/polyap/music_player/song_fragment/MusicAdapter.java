@@ -253,6 +253,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
 
     /**
      * Метод, используемый для скроллбара
+     *
      * @param position позиция
      * @return первый символ строки названия альбома
      */
@@ -296,6 +297,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> 
 
     /**
      * Обновление списка треков
+     *
      * @param musicFilesArrayList новый список треков
      */
     public void updateList(ArrayList<MusicFiles> musicFilesArrayList) {

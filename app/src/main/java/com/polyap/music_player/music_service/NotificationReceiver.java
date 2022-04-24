@@ -17,8 +17,8 @@ public class NotificationReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String actionName = intent.getAction();
         Intent serviceIntent = new Intent(context, MusicService.class);
-        if(actionName != null){
-            switch (actionName){
+        if (actionName != null) {
+            switch (actionName) {
                 case ACTION_PLAY:
                     serviceIntent.putExtra("ActionName", "playPause");
                     context.startService(serviceIntent);

@@ -56,7 +56,8 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
 
     /**
      * Констуктор
-     * @param context Контекст
+     *
+     * @param context        Контекст
      * @param musicFilesList список треков, которые будут отображаться
      */
     AlbumDetailsAdapter(Context context, ArrayList<MusicFiles> musicFilesList) {
@@ -175,8 +176,9 @@ public class AlbumDetailsAdapter extends RecyclerView.Adapter<AlbumDetailsAdapte
 
     /**
      * Удаление трека
+     *
      * @param position позиция трека
-     * @param view View элемент
+     * @param view     View элемент
      */
     private void deleteFile(int position, View view) {
         Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,

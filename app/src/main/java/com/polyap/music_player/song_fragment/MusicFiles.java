@@ -15,6 +15,7 @@ public class MusicFiles implements Serializable {
     private String albumId;
     private String id;
     private String size;
+
     //Комментатор отказался давать комментарии
     public MusicFiles() {
 
@@ -44,7 +45,7 @@ public class MusicFiles implements Serializable {
         this.artist = artist;
         this.duration = duration;
         this.path = path;
-        this.albumId= albumId;
+        this.albumId = albumId;
         this.id = id;
         this.dateAdded = dateAdded;
         this.size = size;
@@ -74,9 +75,13 @@ public class MusicFiles implements Serializable {
         this.artist = artist;
     }
 
-    public String getAlbumId() { return albumId; }
+    public String getAlbumId() {
+        return albumId;
+    }
 
-    public void setAlbumId(String albumId) { this.albumId = albumId; }
+    public void setAlbumId(String albumId) {
+        this.albumId = albumId;
+    }
 
     public String getDuration() {
         return duration;
@@ -86,9 +91,13 @@ public class MusicFiles implements Serializable {
         this.duration = duration;
     }
 
-    public String getId() { return id; }
+    public String getId() {
+        return id;
+    }
 
-    public void setId(String id) { this.id = id; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getPath() {
         return path;

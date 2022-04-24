@@ -25,6 +25,7 @@ public class ViewPager2Adapter extends FragmentStateAdapter {
 
     /**
      * конструктор
+     *
      * @param fragmentActivity фрагмент-активити
      */
     public ViewPager2Adapter(@NonNull FragmentActivity fragmentActivity) {
@@ -35,26 +36,27 @@ public class ViewPager2Adapter extends FragmentStateAdapter {
 
     /**
      * Метод, добавляющий фрагменты
+     *
      * @param fragment фрагмент
-     * @param title заголовок
+     * @param title    заголовок
      */
-    void addFragments(Fragment fragment, String title){
+    void addFragments(Fragment fragment, String title) {
         fragments.add(fragment);
         titles.add(title);
     }
 
     /**
      * Создание фрагментов
+     *
      * @param position позиция
      * @return фрагмент
      */
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        if(position == 0) {
+        if (position == 0) {
             return new SongFragment();
-        }
-        else {
+        } else {
             return new AlbumFragment();
         }
     }
@@ -71,7 +73,7 @@ public class ViewPager2Adapter extends FragmentStateAdapter {
      * @param position позиция
      * @return заголовок
      */
-    public CharSequence getPageTitle(int position){
+    public CharSequence getPageTitle(int position) {
         return titles.get(position);
     }
 }

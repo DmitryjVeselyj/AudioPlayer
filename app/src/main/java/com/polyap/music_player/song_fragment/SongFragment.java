@@ -79,7 +79,7 @@ public class SongFragment extends Fragment {
      * @param inflater           экземляр класса, создающего из layout-файла View-элемент
      * @param container          ViewGroup контейнер
      * @param savedInstanceState сохранённое состояние
-     * @return
+     * @return View
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

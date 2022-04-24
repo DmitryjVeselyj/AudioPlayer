@@ -63,6 +63,7 @@ public class AlbumDetails extends AppCompatActivity {
 
 
     }
+
     /**
      * инициализация элементов активити
      */
@@ -121,6 +122,7 @@ public class AlbumDetails extends AppCompatActivity {
 
     /**
      * Загрузка изображения
+     *
      * @param position позиция трека
      */
     private void loadImage(int position) {

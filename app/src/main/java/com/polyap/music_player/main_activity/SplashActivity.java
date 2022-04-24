@@ -15,6 +15,7 @@ public class SplashActivity extends AppCompatActivity {
 
     /**
      * метод AppCompatActivity, вызывается при создании активити
+     *
      * @param savedInstanceState сохранённое состояние
      */
     @Override

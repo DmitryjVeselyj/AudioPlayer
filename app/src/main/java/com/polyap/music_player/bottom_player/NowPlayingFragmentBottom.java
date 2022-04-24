@@ -84,6 +84,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * метод Fragment, вызывается при создании фрагмента
+     *
      * @param savedInstanceState сохранённое состояние
      */
     @Override
@@ -97,8 +98,9 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * Инициализация
-     * @param inflater экземляр класса, создающего из layout-файла View-элемент
-     * @param container ViewGroup контейнер
+     *
+     * @param inflater           экземляр класса, создающего из layout-файла View-элемент
+     * @param container          ViewGroup контейнер
      * @param savedInstanceState сохранённое состояние
      * @return
      */
@@ -118,7 +120,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(musicServiceFrag != null){
+                if (musicServiceFrag != null) {
                     playMusic(getNewPosition(FORWARD));
                     updatePlayer();
 
@@ -128,7 +130,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         prevBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(musicServiceFrag != null){
+                if (musicServiceFrag != null) {
                     playMusic(getNewPosition(BACK));
                     updatePlayer();
 
@@ -138,26 +140,24 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         playPauseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(musicServiceFrag != null) {
+                if (musicServiceFrag != null) {
                     isPlaying = !isPlaying;
-                    if(musicServiceFrag.mediaPlayer != null){
-                        if(musicServiceFrag.isPlaying()){
+                    if (musicServiceFrag.mediaPlayer != null) {
+                        if (musicServiceFrag.isPlaying()) {
                             musicServiceFrag.pause();
                             isPlaying = false;
-                            musicServiceFrag.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
+                            musicServiceFrag.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
                             playPauseBtn.setImageResource(R.drawable.ic_play_n);
 
-                        }
-                        else{
+                        } else {
                             musicServiceFrag.start();
                             isPlaying = true;
                             playPauseBtn.setImageResource(R.drawable.ic_pause_n);
-                            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+                            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
 
                         }
                         updateCurrentSong();
-                    }
-                    else{
+                    } else {
                         playMusic(plPosition);
                         updatePlayer();
                     }
@@ -171,13 +171,13 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
             public void onClick(View view) {
                 Intent intent = new Intent(getContext(), PlayerActivity.class);
                 intent.putExtra("sender", "BottomPlayer");
-                Activity activity = (Activity)getContext();
+                Activity activity = (Activity) getContext();
                 activity.startActivity(intent);
                 activity.overridePendingTransition(R.anim.bottom_to_top, R.anim.top_to_bottom);
 
             }
         });
-        if(SHOW_MINI_PLAYER == false)
+        if (SHOW_MINI_PLAYER == false)
             view.setVisibility(View.GONE);
         else
             view.setVisibility(View.VISIBLE);
@@ -187,16 +187,16 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     /**
      * обновление текущего трека(анимация)
      */
-    public static void updateCurrentSong(){
+    public static void updateCurrentSong() {
 
-        if(lastHolder != null) {
+        if (lastHolder != null) {
             if (isPlaying) {
                 lastHolder.equalizer.animateBars();
             } else {
                 lastHolder.equalizer.stopBars();
             }
         }
-        if(lastAlbumHolder != null){
+        if (lastAlbumHolder != null) {
             if (isPlaying) {
                 lastAlbumHolder.equalizer.animateBars();
             } else {
@@ -211,12 +211,12 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     @Override
     public void onResume() {
         super.onResume();
-        if(SHOW_MINI_PLAYER){
+        if (SHOW_MINI_PLAYER) {
 
             updatePlayer();
             plPosition = lastMusicPosition;
             Intent intent = new Intent(getContext(), MusicService.class);
-            if(getContext()!= null){
+            if (getContext() != null) {
                 getContext().bindService(intent, this, Context.BIND_AUTO_CREATE);
             }
         }
@@ -225,8 +225,9 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * Как только сервис подключился, инициализируем элементы
+     *
      * @param componentName имя компонента
-     * @param iBinder элемент, реализующий интерфейс IBinder
+     * @param iBinder       элемент, реализующий интерфейс IBinder
      */
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -239,6 +240,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * Метод вызывается, если сервис отключился
+     *
      * @param componentName имя компонента
      */
     @Override
@@ -249,13 +251,14 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * Запуск проигрывания музыки
+     *
      * @param position позиция трека
      */
-    void playMusic(int position){
+    void playMusic(int position) {
         plPosition = position;
         PlayerActivity.position = position;
         musicServiceFrag.setPosition(position);
-        if(lastMusicQueue != null){
+        if (lastMusicQueue != null) {
             uri = Uri.parse(lastMusicQueue.get(position).getPath());
         }
         if (musicServiceFrag.mediaPlayer != null) {
@@ -278,9 +281,9 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
         }
         if (isPlaying) {
             musicServiceFrag.start();
-            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
         } else {
-            musicServiceFrag.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
+            musicServiceFrag.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
         }
 
         oldMusicPlayed = currentMusicPlaying;
@@ -300,7 +303,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
                     .darkColor(ContextCompat.getColor(getContext(), R.color.purple_200))
                     .setAccentColor(ContextCompat.getColor(getContext(), R.color.purple_200))
                     .build();
-        } else if (getContext() != null){
+        } else if (getContext() != null) {
             fragment = DialogEqualizerFragment.newBuilder()
                     .setAudioSessionId(audioSessionId)
                     .themeColor(ContextCompat.getColor(getContext(), R.color.black))
@@ -320,7 +323,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     }
 
     //Вы этого не видели
-    private void equalizerUpdate(){
+    private void equalizerUpdate() {
         FragmentManager fm = getActivity().getSupportFragmentManager();//дичайший костыль. Еле держится, но работает
         fm.beginTransaction().hide(fragment).commit();
         fragment.show(getActivity().getSupportFragmentManager(), "eq");
@@ -329,25 +332,25 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * Метод, возращающий позицию нового трека
+     *
      * @param direction направление
      * @return позиция нового трека для запуска
      */
-    private int getNewPosition(String direction){
-        if(isRepeat)
+    private int getNewPosition(String direction) {
+        if (isRepeat)
             return plPosition;
-        if(direction.equals(FORWARD)){
+        if (direction.equals(FORWARD)) {
             return (plPosition + 1) % lastMusicQueue.size();
-        }
-        else{
-            return (plPosition - 1) < 0 ? (lastMusicQueue.size()) - 1: plPosition - 1;
+        } else {
+            return (plPosition - 1) < 0 ? (lastMusicQueue.size()) - 1 : plPosition - 1;
         }
     }
 
     /**
      * Инициализация сервиса
      */
-    void initService(){
-        if(musicServiceFrag == null) {
+    void initService() {
+        if (musicServiceFrag == null) {
             Intent intent = new Intent(getContext(), MusicService.class);
             intent.putExtra("servicePosition", plPosition);
             getContext().startService(intent);
@@ -357,17 +360,17 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
     /**
      * Плавное изменение цвета мини-плеера в зависимости от трека
      */
-    private void changeBackColor(){
-        Bitmap bitmap = ((BitmapDrawable)albumArt.getDrawable()).getBitmap();
+    private void changeBackColor() {
+        Bitmap bitmap = ((BitmapDrawable) albumArt.getDrawable()).getBitmap();
         Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
             @Override
             public void onGenerated(@Nullable Palette palette) {
                 Palette.Swatch swatch = palette.getDominantSwatch();
-                if(swatch != null){
+                if (swatch != null) {
                     float[] hsl = swatch.getHsl();
-                    hsl[1] = hsl[1] > (float) 0.5? (float)0.31 : hsl[1];
-                    hsl[2] = hsl[2] < (float) 0.5? (float)0.34 : hsl[2];
-                    hsl[2] = hsl[2] > (float) 0.83? (float)0.3:hsl[2];
+                    hsl[1] = hsl[1] > (float) 0.5 ? (float) 0.31 : hsl[1];
+                    hsl[2] = hsl[2] < (float) 0.5 ? (float) 0.34 : hsl[2];
+                    hsl[2] = hsl[2] > (float) 0.83 ? (float) 0.3 : hsl[2];
                     int color = ColorUtils.HSLToColor(hsl);
                     ColorDrawable colorDrawable1 = new ColorDrawable(color);
                     ColorDrawable[] cd = {lastColorBottom, colorDrawable1};
@@ -388,23 +391,22 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
      */
     @Override
     public void updatePlayer() {
-            Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(lastMusicQueue.get(lastMusicPosition).getAlbumId()));
-            albumArt.setImageURI(imageUri);
-            if(albumArt.getDrawable() == null){
-                albumArt.setImageResource(R.drawable.msc_back1);
-            }
-            songName.setText(lastMusicQueue.get(lastMusicPosition).getTitle());
-            artist.setText(lastMusicQueue.get(lastMusicPosition).getArtist());
-            changeBackColor();
-            if(isPlaying){
-                playPauseBtn.setImageResource(R.drawable.ic_pause_n);
-                isPlaying = true;
-            }
-            else{
-                playPauseBtn.setImageResource(R.drawable.ic_play_n);
-                isPlaying = false;
-            }
-        if(SHOW_MINI_PLAYER == false)
+        Uri imageUri = Uri.withAppendedPath(ALBUMART_URI, String.valueOf(lastMusicQueue.get(lastMusicPosition).getAlbumId()));
+        albumArt.setImageURI(imageUri);
+        if (albumArt.getDrawable() == null) {
+            albumArt.setImageResource(R.drawable.msc_back1);
+        }
+        songName.setText(lastMusicQueue.get(lastMusicPosition).getTitle());
+        artist.setText(lastMusicQueue.get(lastMusicPosition).getArtist());
+        changeBackColor();
+        if (isPlaying) {
+            playPauseBtn.setImageResource(R.drawable.ic_pause_n);
+            isPlaying = true;
+        } else {
+            playPauseBtn.setImageResource(R.drawable.ic_play_n);
+            isPlaying = false;
+        }
+        if (SHOW_MINI_PLAYER == false)
             view.setVisibility(View.GONE);
         else
             view.setVisibility(View.VISIBLE);
@@ -415,15 +417,14 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
      * Реализация метода интерфейса
      */
     public void btn_play_pauseClicked() {
-        if(musicServiceFrag.isPlaying()){
+        if (musicServiceFrag.isPlaying()) {
             musicServiceFrag.pause();
             isPlaying = false;
-            musicServiceFrag.showNotification(R.drawable.ic_play_n, 0f,  PlaybackStateCompat.STATE_PLAYING);
-        }
-        else{
+            musicServiceFrag.showNotification(R.drawable.ic_play_n, 0f, PlaybackStateCompat.STATE_PLAYING);
+        } else {
             musicServiceFrag.start();
             isPlaying = true;
-            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f,  PlaybackStateCompat.STATE_PLAYING);
+            musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PLAYING);
 
         }
         updateCurrentSong();
@@ -435,7 +436,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
      */
     public void btn_nextClicked() {
         musicServiceFrag.mediaPlayer.seekTo(0);
-        if(isPlaying)
+        if (isPlaying)
             musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);
         else
             musicServiceFrag.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
@@ -448,7 +449,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
      */
     public void btn_prevClicked() {
         musicServiceFrag.mediaPlayer.seekTo(0);
-        if(isPlaying)
+        if (isPlaying)
             musicServiceFrag.showNotification(R.drawable.ic_pause_n, 1f, PlaybackStateCompat.STATE_PAUSED);//1f state playing
         else
             musicServiceFrag.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);//0f
@@ -461,12 +462,12 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
      */
     public void btn_dismiss() {
         Activity activity = getActivity();
-        if(activity != null && activity.getBaseContext() != null) {
+        if (activity != null && activity.getBaseContext() != null) {
             NotificationManager mNotificationManager = (NotificationManager) activity.getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(12312);
         }
 
-        if(musicServiceFrag != null){
+        if (musicServiceFrag != null) {
             musicServiceFrag.pause();
             musicServiceFrag.deleteNot();
             isPlaying = false;
@@ -477,6 +478,7 @@ public class NowPlayingFragmentBottom extends Fragment implements ServiceConnect
 
     /**
      * Связываем фрагмент с активити
+     *
      * @param activity Активити
      */
     @Override

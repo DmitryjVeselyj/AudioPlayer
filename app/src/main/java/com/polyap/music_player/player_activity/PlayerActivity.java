@@ -114,8 +114,10 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     static MusicService musicService = musicServiceMain;
     public static String QUEUE_MUSIC = "QueueMusic";
     public static String MUSIC_LIST = "MUSIC_LIST";
+
     /**
      * метод AppCompatActivity, вызывается при создании активити
+     *
      * @param savedInstanceState сохранённое состояние
      */
     @Override
@@ -166,6 +168,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             }
         }
     }
+
     /**
      * делаем статус-бар безграничным
      */
@@ -185,6 +188,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Добавляем отступ сверху на высоту статус-бара
+     *
      * @param layout файл разметки(объект ViewGroup)
      */
     void addPaddingTop(RelativeLayout layout) {
@@ -215,6 +219,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Преобразование времени в читабельный формат
+     *
      * @param currentPosition текущая позиция
      * @return строка с форматированным временем
      */
@@ -263,7 +268,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Получение позиции нужного трека в списке
-     * @param tracks Список треков
+     *
+     * @param tracks      Список треков
      * @param currentFile нужный трек
      * @return позиция
      */
@@ -307,6 +313,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Получение позиции нового трека
+     *
      * @param direction направление
      * @return позиция нового трека
      */
@@ -322,7 +329,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * основные ребята, которые мониторят изменения
-     * */
+     */
     private void mainListeners() {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -411,6 +418,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Запуск проигрывания музыки
+     *
      * @param position позиция трека
      */
     private void getIntentMethod(int position) {
@@ -564,6 +572,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Изменение цвета визуализатора
+     *
      * @param visualizer визуализатор
      */
     private void changeVisualizerColor(BaseVisualizer visualizer) {
@@ -597,8 +606,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * @param activity активити
-     * @param bits битс
-     * @param on он
+     * @param bits     битс
+     * @param on       он
      */
     public static void setWindowFlag(Activity activity, final int bits, boolean on) {
         Window win = activity.getWindow();
@@ -613,6 +622,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Загрузка изображения
+     *
      * @param position позиция
      */
     private void loadImages(int position) {
@@ -692,6 +702,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Метод, в котором обрабатываются нажатия всего и вся
+     *
      * @param view объект ViewGroup
      */
     @Override
@@ -819,7 +830,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Метод, в котором обрабатываются прикосновения всего и вся
-     * @param view объект ViewGroup
+     *
+     * @param view        объект ViewGroup
      * @param motionEvent моушн Событие
      */
     @Override
@@ -870,7 +882,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * @param componentName имя компонента
-     * @param iBinder объект, реализующий интерфейс интерфейса IBinder
+     * @param iBinder       объект, реализующий интерфейс интерфейса IBinder
      */
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -923,6 +935,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Вызывается, когда сервис отключается
+     *
      * @param componentName имя компонента
      */
     @Override
@@ -932,6 +945,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     /**
      * Обработка моментов, когда трек заканчивается
+     *
      * @param mediaPlayer медиаплеер
      */
     @Override
@@ -973,6 +987,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         updateCurrentSong();
     }
+
     /**
      * Без комментариев
      */
@@ -986,6 +1001,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             musicService.showNotification(R.drawable.ic_play_n, 1f, PlaybackStateCompat.STATE_PAUSED);
         getIntentMethod(getNewPosition(FORWARD));
     }
+
     /**
      * Без комментариев
      */

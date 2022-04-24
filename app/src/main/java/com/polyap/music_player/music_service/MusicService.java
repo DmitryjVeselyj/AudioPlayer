@@ -49,7 +49,7 @@ import java.io.IOException;
  */
 public class MusicService extends Service implements MediaPlayer.OnCompletionListener {
     IBinder mBinder = new MyBinder();
-    public static MediaPlayer mediaPlayer ;
+    public static MediaPlayer mediaPlayer;
     Uri uri;
     int position = plPosition;
     public ActionPlaying actionPlaying;
@@ -68,11 +68,12 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
         position = lastMusicPosition;
         plPosition = lastMusicPosition;
-        mediaSessionCompat= new MediaSessionCompat(getBaseContext(), "My Audio");
+        mediaSessionCompat = new MediaSessionCompat(getBaseContext(), "My Audio");
     }
 
     /**
      * Если убрана задача, убираем сервис из строки уведомлений
+     *
      * @param rootIntent Intent объект
      */
     @Override
@@ -84,7 +85,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     /**
      * Удаление из строки уведомлений
      */
-    public void deleteNot(){
+    public void deleteNot() {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(12312);
     }
@@ -93,11 +94,12 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     /**
      * MyBinder класс
      */
-    public class MyBinder extends Binder{
-        public MusicService getService(){
+    public class MyBinder extends Binder {
+        public MusicService getService() {
             return MusicService.this;
         }
     }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -107,50 +109,47 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     /**
      * Обработка действий сервиса
-     * @param intent Intent объект
-     * @param flags флаги
+     *
+     * @param intent  Intent объект
+     * @param flags   флаги
      * @param startId int
      * @return int
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int myPosition = intent.getIntExtra("servicePosition",-1);
+        int myPosition = intent.getIntExtra("servicePosition", -1);
         String actionName = intent.getStringExtra("ActionName");
-        if(actionName != null){
-            switch (actionName){
+        if (actionName != null) {
+            switch (actionName) {
                 case "playPause":
-                    if(actionPlaying != null){
+                    if (actionPlaying != null) {
                         actionPlaying.btn_play_pauseClicked();
-                    }
-                    else if(updateBottomPlayer != null){
+                    } else if (updateBottomPlayer != null) {
                         updateBottomPlayer.btn_play_pauseClicked();
                         updateBottomPlayer.updatePlayer();
                     }
                     break;
                 case "next":
-                    if(actionPlaying != null){
+                    if (actionPlaying != null) {
                         actionPlaying.btn_nextClicked();
-                    }
-                     else if(updateBottomPlayer != null){
+                    } else if (updateBottomPlayer != null) {
                         updateBottomPlayer.btn_nextClicked();
                         updateBottomPlayer.updatePlayer();
                     }
 
                     break;
                 case "previous":
-                    if(actionPlaying != null){
+                    if (actionPlaying != null) {
                         actionPlaying.btn_prevClicked();
-                    }
-                    else if(updateBottomPlayer != null){
+                    } else if (updateBottomPlayer != null) {
                         updateBottomPlayer.btn_prevClicked();
                         updateBottomPlayer.updatePlayer();
                     }
                     break;
                 case "dismiss":
-                    if(actionPlaying != null){
+                    if (actionPlaying != null) {
                         actionPlaying.btn_dismiss();
-                    }
-                    else if(updateBottomPlayer != null){
+                    } else if (updateBottomPlayer != null) {
                         updateBottomPlayer.btn_dismiss();
                     }
                     break;
@@ -162,52 +161,55 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     /**
      * Запускаем плеер
      */
-    public void start(){
+    public void start() {
         mediaPlayer.start();
     }
 
     /**
      * @return Предоставляется читателю самому догадаться, что возращает этот метод
      */
-    public boolean isPlaying(){
+    public boolean isPlaying() {
         return mediaPlayer.isPlaying();
     }
 
     /**
      * останавливаем плеер
      */
-    public void stop(){
+    public void stop() {
         mediaPlayer.stop();
     }
 
     /**
      * @return длина трека
      */
-    public int getDuration(){
+    public int getDuration() {
         return mediaPlayer.getDuration();
     }
 
     /**
      * Перемещение плеера на нужную позицию
+     *
      * @param position позиция в треке
      */
-    public void seekTo(int position){
+    public void seekTo(int position) {
         mediaPlayer.seekTo(position);
     }
 
     /**
      * Получение позиции плеера
+     *
      * @return текущее положение плеера
      */
-    public int getCurrentPosition(){
+    public int getCurrentPosition() {
         return mediaPlayer.getCurrentPosition();
     }
 
     /**
      * Создание плеера по нужному треку
+     *
      * @param position позиция
      */
-    public void createMediaPlayer(int position){
+    public void createMediaPlayer(int position) {
         uri = Uri.parse(lastMusicQueue.get(position).getPath());
         mediaPlayer = MediaPlayer.create(getBaseContext(), uri);
     }
@@ -215,7 +217,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     /**
      * Приостанавливаем плеер
      */
-    public void pause(){
+    public void pause() {
         mediaPlayer.pause();
     }
 
@@ -228,6 +230,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     /**
      * Как неудивительно, но это подготовка плеера
+     *
      * @throws IOException
      */
     public void prepare() throws IOException {
@@ -236,6 +239,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     /**
      * Устанавливаем нужный трек в качестве источника
+     *
      * @param uri Я называю его Юрий
      * @throws IOException
      */
@@ -245,17 +249,19 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     /**
      * Получение id сессии
+     *
      * @return идентификатор сессии
      */
-    public int getAudioSessionId(){
+    public int getAudioSessionId() {
         return mediaPlayer.getAudioSessionId();
     }
 
     /**
      * Устанавливаем позицию
+     *
      * @param position позиция
      */
-    public void setPosition(int position){
+    public void setPosition(int position) {
         this.position = position;
         plPosition = position;
     }
@@ -263,20 +269,20 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     /**
      * устанавливаем прослушивателя для медиаплеера
      */
-    public void OnCompleted(){
+    public void OnCompleted() {
         mediaPlayer.setOnCompletionListener(this);
     }
 
     /**
      * Прослушиватель окончания воспроизведения треков
+     *
      * @param mediaPlayer это именно то, что вы думаете
      */
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        if(actionPlaying != null){
+        if (actionPlaying != null) {
             actionPlaying.btn_nextClicked();
-        }
-        else if(updateBottomPlayer != null){
+        } else if (updateBottomPlayer != null) {
             updateBottomPlayer.btn_nextClicked();
             updateBottomPlayer.updatePlayer();
         }
@@ -285,34 +291,37 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     /**
      * Колбэк для строки уведомлений
+     *
      * @param actionPlaying интерфейс
      */
-    public void setCallBack(ActionPlaying actionPlaying){
+    public void setCallBack(ActionPlaying actionPlaying) {
         this.actionPlaying = actionPlaying;
     }
 
     /**
      * Функция с довольно загадочным названием
      * Колбэк для мини-плеера
+     *
      * @param updateBottomPlayer интерфейс
      */
-    public void setCallBack1(UpdateBottomPlayer updateBottomPlayer){
+    public void setCallBack1(UpdateBottomPlayer updateBottomPlayer) {
         this.updateBottomPlayer = updateBottomPlayer;
     }
 
 
     /**
      * Отображение сервиса в строке уведомлений
-     * @param playPauseBtn иконка
+     *
+     * @param playPauseBtn  иконка
      * @param playbackSpeed скорость обновления SeekBar-а в строке уведомлений
-     * @param state состояние
+     * @param state         состояние
      */
-    public void showNotification(int playPauseBtn, float playbackSpeed, int state){
-        Intent intent = new Intent(this , PlayerActivity.class);
-        PendingIntent contentIntent= PendingIntent.getActivity(this, 0, intent, 0);
+    public void showNotification(int playPauseBtn, float playbackSpeed, int state) {
+        Intent intent = new Intent(this, PlayerActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         Intent prevIntent = new Intent(this, NotificationReceiver.class).setAction(ACTION_PREVIOUS);
-        PendingIntent prevPending = PendingIntent.getBroadcast(this, 0,prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent prevPending = PendingIntent.getBroadcast(this, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent pauseIntent = new Intent(this, NotificationReceiver.class).setAction(ACTION_PLAY);
         PendingIntent pausePending = PendingIntent.getBroadcast(this, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -322,7 +331,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
         Intent dismissIntent = new Intent(this, NotificationReceiver.class).setAction(ACTION_DISMISS);
         PendingIntent dismissPending = PendingIntent.getBroadcast(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
 
 
         final Intent notificationIntent = new Intent(this, SplashActivity.class);
@@ -363,11 +371,11 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 .build();
         PlaybackStateCompat playbackStateCompat = new PlaybackStateCompat.Builder().build();
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             mediaSessionCompat.setMetadata(new MediaMetadataCompat.Builder()
                     .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer.getDuration()).build());
             mediaSessionCompat.setPlaybackState(new PlaybackStateCompat.Builder()
-                    .setState(state, mediaPlayer.getCurrentPosition(), playbackSpeed,  SystemClock.elapsedRealtime())
+                    .setState(state, mediaPlayer.getCurrentPosition(), playbackSpeed, SystemClock.elapsedRealtime())
                     .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
                     .build());
 
@@ -380,7 +388,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                 super.onSeekTo(pos);
                 mediaPlayer.seekTo((int) pos);
                 mediaSessionCompat.setPlaybackState(new PlaybackStateCompat.Builder()
-                        .setState(PlaybackStateCompat.STATE_PLAYING, mediaPlayer.getCurrentPosition(), playbackSpeed,  SystemClock.elapsedRealtime())
+                        .setState(PlaybackStateCompat.STATE_PLAYING, mediaPlayer.getCurrentPosition(), playbackSpeed, SystemClock.elapsedRealtime())
                         .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
                         .build());
 
@@ -393,10 +401,11 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     /**
      * Сохранение последнего трека
+     *
      * @param position позиция
      */
-    public void saveLastTrack(int position){
-        SharedPreferences.Editor editor = getSharedPreferences(MUSIC_LAST_PLAYED,MODE_PRIVATE).edit();
+    public void saveLastTrack(int position) {
+        SharedPreferences.Editor editor = getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit();
         editor.putInt(MUSIC_FILE, position);
         editor.apply();
     }
